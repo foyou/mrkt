@@ -98,6 +98,10 @@ public class ProductServiceImpl implements IProductService {
 	@SuppressWarnings("unchecked")
 	@Override
 	public Page<Product> findPage(int currPage, Long catId, String orderWay, String keywords) throws Exception {
+		if (!(currPage >= 0)) {
+			throw new Exception("前端传入非法数据：curr_page=" + currPage);
+		}
+		
 		final int pageSize = 10;
 		
 		Specification<Product> sp = (root, query, builder) -> {

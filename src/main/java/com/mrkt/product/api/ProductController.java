@@ -67,7 +67,7 @@ public class ProductController {
 			@RequestParam(value="type", required=false) Long catId, 
 			@RequestParam(value="order_way", required=false) String orderWay, 
 			@RequestParam(value="keywords", required=false) String keywords) throws Exception {
-		Page<Product> page = productService.findPage(currPage, catId, orderWay, keywords);
+		Page<Product> page = productService.findPage(currPage-1, catId, orderWay, keywords);
 		return ReturnModel.SUCCESS(page);
 	}
 	
