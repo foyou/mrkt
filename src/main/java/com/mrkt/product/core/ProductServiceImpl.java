@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.criteria.Predicate;
 
@@ -21,18 +22,25 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
-import com.mrkt.product.constant.ProductState;
+import com.mrkt.constant.ProductStateEnum;
+import com.mrkt.constant.ResultEnum;
+import com.mrkt.exception.MrktException;
 import com.mrkt.product.dao.CategoryRepository;
+import com.mrkt.product.dao.OrderRepository;
 import com.mrkt.product.dao.ProductRepository;
 import com.mrkt.product.model.Comment;
 import com.mrkt.product.model.Product;
 import com.mrkt.usr.ThisUser;
 import com.mrkt.usr.dao.UserRepository;
 import com.mrkt.usr.model.UserBase;
+import com.mrkt.vo.PreMessageVo;
 
 @Service(value="productService")
 public class ProductServiceImpl implements IProductService {
+	
+	private final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
 
 	@Autowired
 	private ProductRepository productRepository;
@@ -40,18 +48,23 @@ public class ProductServiceImpl implements IProductService {
 	private UserRepository userRepository;
 	@Autowired
 	private CategoryRepository categoryRepository;
+	@Autowired
+	private OrderRepository orderRepository;
 	
 	@SuppressWarnings("rawtypes")
 	@Autowired
 	@Qualifier("redisTemplate")
 	private RedisTemplate redisTemplate;
 	
-	private final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
-	
 	@SuppressWarnings("unchecked")
 	@Override
 	public Product findOne(Long id) throws Exception {
 		Product entity = productRepository.findOne(id);
+		if (entity == null) {
+			logger.error("【查询商品详情】 找不到商品，productId={}", id);
+			throw new MrktException(ResultEnum.PRODUCT_NOT_EXIST);
+		}
+		
 		// 查询一次具体商品详情浏览量加1
 		entity.setViews(entity.getViews()+1);
 		entity = productRepository.save(entity);
@@ -67,10 +80,13 @@ public class ProductServiceImpl implements IProductService {
 	
 	@Override
 	public void saveOrUpdate(Product entity) throws Exception{
-		if (entity.getId() != null && entity.getId() >= 0) {
+		if (entity.getId() != null && entity.getId() >= 0) {   // 更新商品信息
 			Product po = productRepository.findOne(entity.getId());
+			if (po == null) {
+				logger.error("【更新商品】 找不到商品，productId={}", entity.getId());
+				throw new MrktException(ResultEnum.PRODUCT_NOT_EXIST);
+			}
 			
-			// 更新商品信息
 			po.setName(entity.getName());
 			po.setDesc(entity.getDesc());
 			po.setPrice((entity.getPrice() != null) && (entity.getPrice() >= 0) ? entity.getPrice() : 0);
@@ -98,8 +114,9 @@ public class ProductServiceImpl implements IProductService {
 	@SuppressWarnings("unchecked")
 	@Override
 	public Page<Product> findPage(int currPage, Long catId, String orderWay, String keywords) throws Exception {
-		if (!(currPage >= 0)) {
-			throw new Exception("前端传入非法数据：curr_page=" + currPage);
+		if (currPage < 0) {
+			logger.error("【查询商品列表】 查询参数不正确，currPage={}", currPage);
+			throw new MrktException(ResultEnum.PARAM_ERROR);
 		}
 		
 		final int pageSize = 10;
@@ -113,7 +130,7 @@ public class ProductServiceImpl implements IProductService {
 	             * @return 断言
 	             */
 				List<Predicate> predicates = new ArrayList<>();
-				predicates.add(builder.equal(root.get("state").as(Integer.class), ProductState.ON_SALE.getState()));// 状态为1的商品，表示售卖中
+				predicates.add(builder.equal(root.get("state").as(Integer.class), ProductStateEnum.ON_SALE.getState()));// 状态为1的商品，表示售卖中
 				if (catId != null) {
 					predicates.add(builder.equal(root.get("catId").as(Long.class), catId));
 				}
@@ -141,7 +158,12 @@ public class ProductServiceImpl implements IProductService {
 	@Override
 	public void cancel(Long id) throws Exception {
 		Product entity = productRepository.findOne(id);
-		entity.setState(ProductState.BE_OFF.getState());// 下架商品，将商品状态设为0
+		if (id == null) {
+			logger.error("【下架商品】 找不到商品，productId={}", id);
+			throw new MrktException(ResultEnum.PRODUCT_NOT_EXIST);
+		}
+		
+		entity.setState(ProductStateEnum.BE_OFF.getState());// 下架商品，将商品状态设为0
 		productRepository.save(entity);
 	}
 
@@ -167,38 +189,39 @@ public class ProductServiceImpl implements IProductService {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void addLikes(Long id) throws Exception {
-		try {
-			Long result = redisTemplate.boundSetOps("pro_like_" + id).add(
-					ThisUser.get().getUid());
-			if (result == null || result == 0)
-				throw new Exception("用户操作错误：用户已经点过赞");
-			// 点赞数加1
-			Product entity = productRepository.findOne(id);
-			entity.setLikes(entity.getLikes() + 1);
-			productRepository.saveAndFlush(entity);
-		} catch (Exception e) {
-			logger.info("用户操作错误：用户已经点过赞");
-			e.printStackTrace();
-			throw e;
+		Long result = redisTemplate.boundSetOps("pro_like_" + id).add(
+				ThisUser.get().getUid());
+		if (result == null || result == 0) {
+			logger.warn("【点赞】 用户重复点赞，uid={}, productId={}", ThisUser.get().getUid(), id);
+			throw new MrktException(ResultEnum.USER_ADDLIKE_ERROR);
 		}
+		// 点赞数加1
+		Product entity = productRepository.findOne(id);
+		if (id == null) {
+			logger.error("【点赞】 找不到商品，productId={}", id);
+			throw new MrktException(ResultEnum.PRODUCT_NOT_EXIST);
+		}
+		
+		entity.setLikes(entity.getLikes() + 1);
+		productRepository.saveAndFlush(entity);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public void removeLikes(Long id) throws Exception {
-		try {
-			Long result = redisTemplate.boundSetOps("pro_like_" + id).remove(
-					ThisUser.get().getUid());
-			if (result == null || result == 0)
-				throw new Exception("用户操作错误：用户没有点赞过该商品");
-			Product entity = productRepository.findOne(id);
-			entity.setLikes(entity.getLikes() - 1);
-			productRepository.saveAndFlush(entity);
-		} catch (Exception e) {
-			logger.info("用户操作错误：用户没有点赞过该商品");
-			e.printStackTrace();
-			throw e;
+		Long result = redisTemplate.boundSetOps("pro_like_" + id).remove(
+				ThisUser.get().getUid());
+		if (result == null || result == 0) {
+			logger.warn("【点赞】 用户没有点赞过该商品，uid={}, productId={}", ThisUser.get().getUid(), id);
+			throw new MrktException(ResultEnum.USER_CANCELLIKE_ERROR);
 		}
+		Product entity = productRepository.findOne(id);
+		if (id == null) {
+			logger.error("【取消点赞】 找不到商品，productId={}", id);
+			throw new MrktException(ResultEnum.PRODUCT_NOT_EXIST);
+		}
+		entity.setLikes(entity.getLikes() - 1);
+		productRepository.saveAndFlush(entity);
 	}
 	@SuppressWarnings("unchecked")
 	@Override
@@ -212,6 +235,10 @@ public class ProductServiceImpl implements IProductService {
 			redisTemplate.boundSetOps("user_coll_" + ThisUser.get().getUid()).add(id);
 			// 收藏数加1
 			Product entity = productRepository.findOne(id);
+			if (id == null) {
+				logger.error("【收藏商品】 找不到商品，productId={}", id);
+				throw new MrktException(ResultEnum.PRODUCT_NOT_EXIST);
+			}
 			entity.setCollection(entity.getCollection() + 1);
 			productRepository.saveAndFlush(entity);
 		} catch (Exception e) {
@@ -232,6 +259,10 @@ public class ProductServiceImpl implements IProductService {
 			// 用户 收藏 商品，多对多，换成两个set存储在redis中
 			redisTemplate.boundSetOps("user_coll_" + ThisUser.get().getUid()).remove(id);
 			Product entity = productRepository.findOne(id);
+			if (id == null) {
+				logger.error("【取消收藏】 找不到商品，productId={}", id);
+				throw new MrktException(ResultEnum.PRODUCT_NOT_EXIST);
+			}
 			entity.setCollection(entity.getCollection() - 1);
 			productRepository.saveAndFlush(entity);
 		} catch (Exception e) {
@@ -243,6 +274,10 @@ public class ProductServiceImpl implements IProductService {
 	@Override
 	public Product addComment(Long productId, String commentContent) throws Exception {
 		Product originalProduct = productRepository.findOne(productId);
+		if (productId == null) {
+			logger.error("【评论商品】 找不到商品，productId={}", productId);
+			throw new MrktException(ResultEnum.PRODUCT_NOT_EXIST);
+		}
 		UserBase UserBase = ThisUser.get();
 		Comment comment = new Comment(UserBase, commentContent);
 		originalProduct.addComment(comment);
@@ -252,6 +287,10 @@ public class ProductServiceImpl implements IProductService {
 	@Override
 	public void removeComment(Long productId, Long commentId) throws Exception {
 		Product originalProduct = productRepository.findOne(productId);
+		if (productId == null) {
+			logger.error("【删除评论】 找不到商品，productId={}", productId);
+			throw new MrktException(ResultEnum.PRODUCT_NOT_EXIST);
+		}
 		originalProduct.removeComment(commentId);
 		productRepository.save(originalProduct);
 	}
@@ -282,11 +321,17 @@ public class ProductServiceImpl implements IProductService {
 	public List<Product> getCollection() throws Exception {
 		Set<Integer> idsInt = redisTemplate.boundSetOps("user_coll_" + ThisUser.get().getUid())
 					 				 .members();
-		if (idsInt != null) {
-			Set<Long> ids = new HashSet<>();
-			for (int i : idsInt) ids.add(new Long(i));
+		if (!CollectionUtils.isEmpty(idsInt)) {
+			Set<Long> ids = idsInt
+					.stream()
+					.map(e -> new Long(e))
+					.collect(Collectors.toSet());
 			
 			List<Product> products = productRepository.findAll(ids);
+			if (products == null) {
+				logger.error("【我收藏的】 找不到商品，productIds={}", ids);
+				throw new MrktException(ResultEnum.PRODUCT_NOT_EXIST);
+			}
 			// 处理当前用户对于商品的点赞情况和收藏情况
 			final UserBase currUser = ThisUser.get();
 			if (currUser != null)
@@ -296,7 +341,33 @@ public class ProductServiceImpl implements IProductService {
 					product.setIsColl(true);
 				});
 			return products;
-		} else return null;
+		} else {
+			return null;
+		}
+	}
+
+	@Override
+	public List<PreMessageVo> getPreMessage(Long productId) throws Exception {
+		// 先判断该商品是否属于此用户
+		Product product = productRepository.findOne(productId);
+		if (product == null) {
+			logger.error("【查询预定留言】 找不到商品，productId={}", productId);
+			throw new MrktException(ResultEnum.PRODUCT_NOT_EXIST);
+		}
+		if (!ThisUser.get().getUid().equals(product.getMrktUser().getUid())) {
+			logger.error("【查询预定留言】 当前用户不是商品卖家，uid={}, productId={}", ThisUser.get().getUid(), productId);
+			throw new MrktException(ResultEnum.USER_NOT_SELLER);
+		}
+		
+		List<com.mrkt.product.model.Order> orderList = orderRepository.findByProductId(productId);
+		List<PreMessageVo> preMessageVoList = new ArrayList<>();
+		if (!CollectionUtils.isEmpty(orderList)) {
+			preMessageVoList = orderList.stream().map(e ->
+				new PreMessageVo(e.getProduct().getId(), e.getBuyerId(), e.getBuyerName(), 
+						e.getSellerId(), e.getMessage(), e.getId())
+			).collect(Collectors.toList());
+		}
+		return preMessageVoList;
 	}
 
 }

@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mrkt.authorization.annotation.Authorization;
-import com.mrkt.dto.ReturnModel;
-import com.mrkt.product.constant.OrderState;
+import com.mrkt.constant.OrderStateEnum;
 import com.mrkt.product.core.IOrderService;
 import com.mrkt.product.model.Order;
+import com.mrkt.vo.ReturnModel;
 
 /**
  * 商品订单 控制器.
@@ -52,7 +52,7 @@ public class OrderController {
 	@RequestMapping(value="/{id}", method=RequestMethod.POST)
 	public ReturnModel acceptOrder(
 			@PathVariable("id") String id) throws Exception {
-		return orderService.processOrder(id, OrderState.BE_WAITING_PYAMENT.getState()) ?
+		return orderService.processOrder(id, OrderStateEnum.BE_WAITING_PYAMENT.getState()) ?
 				ReturnModel.SUCCESS() : ReturnModel.ERROR();
 	}
 	
@@ -66,7 +66,7 @@ public class OrderController {
 	@RequestMapping(value="/{id}/seller", method=RequestMethod.DELETE)
 	public ReturnModel cancelOrder(
 			@PathVariable("id") String id) throws Exception {
-		return orderService.processOrder(id, OrderState.BE_CANCELED.getState()) ?
+		return orderService.processOrder(id, OrderStateEnum.BE_CANCELED.getState()) ?
 				ReturnModel.SUCCESS() : ReturnModel.ERROR();
 	}
 	

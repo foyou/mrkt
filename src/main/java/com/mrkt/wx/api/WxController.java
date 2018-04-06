@@ -12,9 +12,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.mrkt.authorization.core.TokenManager;
 import com.mrkt.config.RedisConfig;
-import com.mrkt.dto.ReturnModel;
 import com.mrkt.sys.config.Configurator;
 import com.mrkt.usr.core.WxUserAction;
+import com.mrkt.vo.ReturnModel;
 import com.mrkt.wx.core.HttpRequest;
 import com.mrkt.wx.core.WxUserServiceImpl;
 import com.mrkt.wx.model.WxAccessToken;
@@ -105,6 +105,7 @@ public class WxController {
 		}
 
 //		System.out.println("test           test");
-		return (wxuser==null||wxuser.getNickName()==null)? null:wxuser;
+		return (wxuser==null||wxuser.getNickName()==null)? 
+				null : ReturnModel.SUCCESS(tokenManager.create(wxuser.getMrktUser()));
 	}
 }

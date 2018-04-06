@@ -1,4 +1,4 @@
-package com.mrkt.product.constant;
+package com.mrkt.constant;
 
 /**
  * @ClassName	ProductState
@@ -8,7 +8,7 @@ package com.mrkt.product.constant;
  * @version 	v1.0
  * @since		2018/03/29 14:03:35
  */
-public enum ProductState {
+public enum ProductStateEnum {
 
 	BE_OFF(0, "已下架"),
 	ON_SALE(1, "售卖中"),
@@ -18,7 +18,7 @@ public enum ProductState {
 	private int state;
 	private String desc;
 	
-	ProductState(int state, String desc) {
+	ProductStateEnum(int state, String desc) {
 		this.state = state;
 		this.desc = desc;
 	}
@@ -27,16 +27,8 @@ public enum ProductState {
 		return state;
 	}
 
-	public void setState(int state) {
-		this.state = state;
-	}
-
 	public String getDesc() {
 		return desc;
-	}
-
-	public void setDesc(String desc) {
-		this.desc = desc;
 	}
 	
 }

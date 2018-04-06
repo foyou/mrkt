@@ -19,11 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.mrkt.authorization.annotation.Authorization;
-import com.mrkt.dto.ReturnModel;
 import com.mrkt.product.core.IProductService;
 import com.mrkt.product.model.Image;
 import com.mrkt.product.model.Product;
 import com.mrkt.usr.ThisUser;
+import com.mrkt.vo.ReturnModel;
 
 /**
  * @ClassName	ProductCotroller	
@@ -254,5 +254,17 @@ public class ProductController {
 	@RequestMapping(value="/products/collection", method=RequestMethod.GET)
 	public ReturnModel getCollection() throws Exception {
 		return ReturnModel.SUCCESS(productService.getCollection());
+	}
+	
+	/**
+	 * 查看商品的预定留言
+	 * @return
+	 * @throws Exception 
+	 */
+	@Authorization
+	@RequestMapping(value="/products/{id}/premessage", method=RequestMethod.GET)
+	public ReturnModel gePerMessage(@PathVariable("id") Long productId) throws Exception {
+		
+		return ReturnModel.SUCCESS(productService.getPreMessage(productId));
 	}
 }

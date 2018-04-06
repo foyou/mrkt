@@ -1,4 +1,4 @@
-package com.mrkt.product.constant;
+package com.mrkt.constant;
 
 /**
  * @ClassName	OrderState
@@ -8,7 +8,7 @@ package com.mrkt.product.constant;
  * @version 	v1.0
  * @since		2018/03/29 14:25:32
  */
-public enum OrderState {
+public enum OrderStateEnum {
 
 	BE_DELETED(-1, "订单已被删除"),
 	BE_CANCELED(0, "订单已取消"),
@@ -32,7 +32,7 @@ public enum OrderState {
 	public void setDesc(String desc) {
 		this.desc = desc;
 	}
-	private OrderState(int state, String desc) {
+	private OrderStateEnum(int state, String desc) {
 		this.state = state;
 		this.desc = desc;
 	}

@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson.JSON;
 import com.mrkt.authorization.annotation.Authorization;
-import com.mrkt.dto.ReturnModel;
 import com.mrkt.usr.core.UserServiceImpl;
+import com.mrkt.vo.ReturnModel;
 
 /**
  * @ClassName	UserController

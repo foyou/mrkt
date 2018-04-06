@@ -1,7 +1,6 @@
 package com.mrkt.product.model;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,9 +8,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 /**
  * 商品类型 实体
@@ -29,14 +25,17 @@ public class Category implements Serializable {
 	@Column(nullable = false) // 映射为字段，值不能为空
 	private String name;      // 类型名称
 	
-	@Column(name = "create_time")
+	@Column(nullable = false)
+	private String icon;
+	
+/*	@Column(name = "create_time")
 	@CreationTimestamp        // 由数据库自动创建时间
 	private Timestamp createTime;
  
 	@Column(name = "update_time")
 	@UpdateTimestamp
 	private Timestamp updateTime;
-
+*/
 	public Long getId() {
 		return id;
 	}
@@ -53,26 +52,14 @@ public class Category implements Serializable {
 		this.name = name;
 	}
 
-	public Timestamp getCreateTime() {
-		return createTime;
+	public String getIcon() {
+		return icon;
 	}
 
-	public void setCreateTime(Timestamp createTime) {
-		this.createTime = createTime;
+	public void setIcon(String icon) {
+		this.icon = icon;
 	}
 
-	public Timestamp getUpdateTime() {
-		return updateTime;
-	}
-
-	public void setUpdateTime(Timestamp updateTime) {
-		this.updateTime = updateTime;
-	}
-
-	@Override
-	public String toString() {
-		return "Category [id=" + id + ", name=" + name + ", createTime=" + createTime + ", updateTime=" + updateTime
-				+ "]";
-	}
+	
 	
 }

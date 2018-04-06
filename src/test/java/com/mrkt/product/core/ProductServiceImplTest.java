@@ -13,9 +13,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.alibaba.fastjson.JSON;
 import com.mrkt.product.model.Product;
 import com.mrkt.usr.ThisUser;
 import com.mrkt.usr.core.UserServiceImpl;
+import com.mrkt.vo.ReturnModel;
 
 /**
  * @ClassName	ProductServiceImplTest	
@@ -75,12 +77,14 @@ public class ProductServiceImplTest {
 
 	@Test
 	public void testFindPage() throws Exception {
-		Page<Product> page = productService.findPage(0, 1L, "views", "商品");
+		Page<Product> page = productService.findPage(0, null, null, null);
+//		Page<Product> page = productService.findPage(0, 1L, "views", "商品");
 //		Page<Product> page = productService.findPage(0, "衣服鞋子", "tmCreated", "商品");
 		System.out.println(page.getSize() + ": " + page.getTotalElements());
 		for (Product product : page) {
 			System.out.println(product);
 		}
+		System.out.println(JSON.toJSONString(ReturnModel.SUCCESS(page)));
 	}
 
 	@Test

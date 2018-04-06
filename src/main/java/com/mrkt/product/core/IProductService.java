@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 
 import com.mrkt.product.model.Product;
+import com.mrkt.vo.PreMessageVo;
 
 /**
  * @ClassName	IProductService	
@@ -122,5 +123,17 @@ public interface IProductService {
 	 */
 	List<Product> getMine() throws Exception;
 
+	/**
+	 * 查询我收藏的
+	 * @return
+	 * @throws Exception
+	 */
 	List<Product> getCollection() throws Exception;
+	
+	/**
+	 * 查看商品预定留言
+	 * @return
+	 * @throws Exception
+	 */
+	List<PreMessageVo> getPreMessage(Long productId) throws Exception;
 }

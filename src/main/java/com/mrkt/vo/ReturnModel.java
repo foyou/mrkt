@@ -1,4 +1,4 @@
-package com.mrkt.dto;
+package com.mrkt.vo;
 
 import java.io.Serializable;
 

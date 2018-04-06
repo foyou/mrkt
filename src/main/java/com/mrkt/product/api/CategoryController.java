@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mrkt.dto.ReturnModel;
 import com.mrkt.product.core.ICategoryService;
+import com.mrkt.vo.ReturnModel;
 
 /**
  * @ClassName	CategoryController
