@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mrkt.product.core.ICategoryService;
+import com.mrkt.product.core.CategoryService;
 import com.mrkt.vo.ReturnModel;
 
 /**
@@ -20,7 +20,7 @@ import com.mrkt.vo.ReturnModel;
 public class CategoryController {
 
 	@Autowired
-	private ICategoryService categoryService;
+	private CategoryService categoryService;
 	
 	@RequestMapping(value="/all", method=RequestMethod.GET)
 	public ReturnModel findAll() {

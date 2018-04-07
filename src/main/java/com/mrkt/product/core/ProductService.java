@@ -14,7 +14,7 @@ import com.mrkt.vo.PreMessageVo;
  * @version 	v1.0 
  * @since		2018/02/16 14:18:44
  */
-public interface IProductService {
+public interface ProductService {
 	
 	/**
 	 * 通过id获取一条记录

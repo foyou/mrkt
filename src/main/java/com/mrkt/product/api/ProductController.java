@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.mrkt.authorization.annotation.Authorization;
-import com.mrkt.product.core.IProductService;
+import com.mrkt.product.core.ProductService;
 import com.mrkt.product.model.Image;
 import com.mrkt.product.model.Product;
 import com.mrkt.usr.ThisUser;
@@ -36,9 +36,9 @@ import com.mrkt.vo.ReturnModel;
 public class ProductController {
 
 	@Autowired
-	private IProductService productService;
+	private ProductService productService;
 	
-	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private final Logger logger = LoggerFactory.getLogger(ProductController.class);
 	
 	/**
 	 * 查询商品信息

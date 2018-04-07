@@ -24,7 +24,7 @@ import com.mrkt.product.model.Category;
 public class CategoryServiceImplTest {
 
 	@Autowired
-	private ICategoryService categoryService;
+	private CategoryService categoryService;
 	
 	@Before
 	public void setUp() throws Exception {

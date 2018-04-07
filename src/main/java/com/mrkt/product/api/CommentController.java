@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mrkt.authorization.annotation.Authorization;
 import com.mrkt.config.StatusCodeConf;
-import com.mrkt.product.core.ICommentService;
-import com.mrkt.product.core.IProductService;
+import com.mrkt.product.core.CommentService;
+import com.mrkt.product.core.ProductService;
 import com.mrkt.product.model.Comment;
 import com.mrkt.product.model.Product;
 import com.mrkt.usr.ThisUser;
@@ -28,10 +28,10 @@ import com.mrkt.vo.ReturnModel;
 public class CommentController {
 	
 	@Autowired
-	private IProductService productService;
+	private ProductService productService;
 	
 	@Autowired
-	private ICommentService commentService;
+	private CommentService commentService;
 	
 	/**
 	 * 获取评论列表

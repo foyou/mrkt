@@ -2,7 +2,7 @@ package com.mrkt.vo;
 
 import java.io.Serializable;
 
-import com.mrkt.exception.ExceptionStatus;
+import com.mrkt.constant.ExceptionStatus;
 
 public class ReturnModel implements Serializable {
 

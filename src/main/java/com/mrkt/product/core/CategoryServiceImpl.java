@@ -21,7 +21,7 @@ import com.mrkt.product.model.Category;
  * @since		2018/03/28 16:17:56
  */
 @Service(value="categoryService")
-public class CategoryServiceImpl implements ICategoryService{
+public class CategoryServiceImpl implements CategoryService{
 
 	@Autowired
 	private CategoryRepository categoryRepository;

@@ -5,13 +5,13 @@ import java.util.List;
 import com.mrkt.product.model.Order;
 
 /**
- * @ClassName	IOrdeService
+ * @ClassName	OrdeService
  * @Description 商品订单的服务接口
  * @author		hdonghong
  * @version 	v1.0
  * @since		2018/02/25 06:27:10
  */
-public interface IOrderService {
+public interface OrderService {
 
 	/**
 	 * 当前用户请求预定商品，生成订单，等待卖家处理订单，order.state->1订单状态为请求预定，要求product.state->2

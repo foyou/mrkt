@@ -9,7 +9,7 @@ import com.mrkt.product.model.Comment;
  * @version 	v1.0
  * @since		2018/02/23 16:27:10
  */
-public interface ICommentService {
+public interface CommentService {
 
 	/**
 	 * 删除留言

@@ -11,7 +11,7 @@ import com.mrkt.product.model.Category;
  * @version 	v1.0
  * @since		2018/03/28 14:58:18
  */
-public interface ICategoryService {
+public interface CategoryService {
 
 	/**
 	 * 获取所有商品分类

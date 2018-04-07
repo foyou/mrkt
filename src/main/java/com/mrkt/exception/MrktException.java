@@ -14,7 +14,7 @@ public class MrktException extends RuntimeException {
 	private Integer code;
 
     public MrktException(ResultEnum resultEnum) {
-        super(resultEnum.getMsg());
+        super(resultEnum.getMessage());
         this.code = resultEnum.getCode();
     }
 

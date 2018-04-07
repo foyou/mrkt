@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mrkt.authorization.annotation.Authorization;
-import com.mrkt.constant.OrderStateEnum;
-import com.mrkt.product.core.IOrderService;
+import com.mrkt.constant.OrderStatusEnum;
+import com.mrkt.product.core.OrderService;
 import com.mrkt.product.model.Order;
 import com.mrkt.vo.ReturnModel;
 
@@ -22,7 +22,7 @@ import com.mrkt.vo.ReturnModel;
 public class OrderController {
 	
 	@Autowired
-	private IOrderService orderService;
+	private OrderService orderService;
 	
 	/**
 	 * 买家请求预定商品
@@ -52,7 +52,7 @@ public class OrderController {
 	@RequestMapping(value="/{id}", method=RequestMethod.POST)
 	public ReturnModel acceptOrder(
 			@PathVariable("id") String id) throws Exception {
-		return orderService.processOrder(id, OrderStateEnum.BE_WAITING_PYAMENT.getState()) ?
+		return orderService.processOrder(id, OrderStatusEnum.BE_WAITING_PYAMENT.getCode()) ?
 				ReturnModel.SUCCESS() : ReturnModel.ERROR();
 	}
 	
@@ -66,7 +66,7 @@ public class OrderController {
 	@RequestMapping(value="/{id}/seller", method=RequestMethod.DELETE)
 	public ReturnModel cancelOrder(
 			@PathVariable("id") String id) throws Exception {
-		return orderService.processOrder(id, OrderStateEnum.BE_CANCELED.getState()) ?
+		return orderService.processOrder(id, OrderStatusEnum.BE_CANCELED.getCode()) ?
 				ReturnModel.SUCCESS() : ReturnModel.ERROR();
 	}
 	

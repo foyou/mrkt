@@ -20,6 +20,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import com.mrkt.constant.ProductStatusEnum;
 import com.mrkt.usr.model.UserBase;
 
 /**
@@ -65,7 +66,7 @@ public class Product implements Serializable{
 	private Integer count = 1;        // 商品库存/余量，因为二手市场，全默认为1
 	
 	@Column(name="product_state")
-	private Integer state;        // 商品状态，0下架/删除；1发布；2被预定；3已售出；
+	private Integer state = ProductStatusEnum.ON_SALE.getCode();   // 商品状态，0下架/删除；1发布；2被预定；3已售出；
 	
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name="product_tm_created")

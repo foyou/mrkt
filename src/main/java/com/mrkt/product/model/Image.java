@@ -67,4 +67,10 @@ public class Image implements Serializable {
 	public void setPath(String path) {
 		this.path = path;
 	}
+	@Override
+	public String toString() {
+		return "Image [id=" + id + ", product=" + product + ", path=" + path + "]";
+	}
+	
+	
 }

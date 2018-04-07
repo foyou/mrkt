@@ -17,13 +17,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories(basePackages = {
 		"com.mrkt.wx.dao",
 		"com.mrkt.usr.dao",
-		// TODO
 		"com.mrkt.product.dao",
 		})
 @EntityScan(basePackages={
 		"com.mrkt.wx.model",
 		"com.mrkt.usr.model",
-		// TODO
 		"com.mrkt.product.model",
 })
 public class MrkttApplication {

@@ -91,5 +91,11 @@ public class Comment implements Serializable {
 	public void setBelongCurrUser(Boolean belongCurrUser) {
 		this.belongCurrUser = belongCurrUser;
 	}
+	@Override
+	public String toString() {
+		return "Comment [id=" + id + ", content=" + content + ", UserBase=" + UserBase + ", createTime=" + createTime
+				+ ", belongCurrUser=" + belongCurrUser + "]";
+	}
+	
 	
 }

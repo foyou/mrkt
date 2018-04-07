@@ -4,17 +4,20 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.alibaba.fastjson.JSON;
 import com.mrkt.product.model.Product;
 import com.mrkt.usr.dao.UserRepository;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class ProductRepositoryTest {
+	
+	private final Logger logger = LoggerFactory.getLogger(ProductRepositoryTest.class);
 	
 	@Autowired
 	ProductRepository productRepository;
@@ -34,7 +37,7 @@ public class ProductRepositoryTest {
 	public void testFindOne() {
 		Product entity = productRepository.findOne(1l);
 		assertNotNull(entity);
-		System.out.println(JSON.toJSONString(entity));
+		logger.warn("product={}", entity);
 	}
 	
 	@Test

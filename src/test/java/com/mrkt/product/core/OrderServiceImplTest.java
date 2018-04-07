@@ -5,6 +5,8 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -25,9 +27,11 @@ import com.mrkt.usr.core.UserServiceImpl;
 public class OrderServiceImplTest {
 
 	@Autowired
-	private IOrderService orderService;
+	private OrderService orderService;
 	@Autowired
 	private UserServiceImpl userServiceImpl;
+	
+	private final Logger logger = LoggerFactory.getLogger(OrderServiceImplTest.class);
 	
 	@Before
 	public void setUp() throws Exception {
@@ -38,8 +42,8 @@ public class OrderServiceImplTest {
 	@Test
 	public void testRequestOrder() throws Exception {
 		Order order = new Order();
-		order.setMessage("留言");
-		orderService.requestOrder(order, 1l);
+		order.setMessage("一口价，十块卖不卖");
+		orderService.requestOrder(order, 2l);
 	}
 
 	@Test
@@ -108,5 +112,5 @@ public class OrderServiceImplTest {
 		System.err.println(
 				orderService.deleteOrder("40286e8161d162d70161d162eb880003"));
 	}
-
+	
 }
