@@ -25,7 +25,15 @@ public class MyExceptionHandlerAdvice {
 	// 定义全局异常处理，value属性可以过滤拦截条件，此处拦截所有的Exception
     @ExceptionHandler(value = Exception.class)
     public @ResponseBody ReturnModel exception(Exception e, WebRequest request) {
-    	logger.error(e.getMessage());
+    	e.printStackTrace();
+    	logger.error("【系统异常】 " + e.getMessage() + 
+    			"\nStackTrace:" + e.getStackTrace().toString());
+        return ReturnModel.ERROR(ExceptionStatus.ERROR);
+    }
+    
+    @ExceptionHandler(value = MrktException.class)
+    public @ResponseBody ReturnModel exception(MrktException e) {
+    	logger.error("【用户操作异常】 " + e.getMessage());
         return ReturnModel.ERROR(ExceptionStatus.ERROR);
     }
 }

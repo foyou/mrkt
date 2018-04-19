@@ -33,6 +33,8 @@ public enum ResultEnum {
 	
 	USER_CANCELCOLL_ERROR(20, "用户取消收藏错误"),
 	
+	UPLOAD_PICTRUE_FIAL(21, "图片上传失败"),
+	
 	;
 	
 	/** 状态码 */

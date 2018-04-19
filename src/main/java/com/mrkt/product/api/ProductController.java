@@ -1,7 +1,10 @@
 package com.mrkt.product.api;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -11,7 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +24,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.mrkt.authorization.annotation.Authorization;
+import com.mrkt.config.CommonProperties;
+import com.mrkt.constant.ResultEnum;
+import com.mrkt.exception.MrktException;
 import com.mrkt.product.core.ProductService;
 import com.mrkt.product.model.Image;
 import com.mrkt.product.model.Product;
@@ -37,6 +45,8 @@ public class ProductController {
 
 	@Autowired
 	private ProductService productService;
+	@Autowired
+	private CommonProperties commonProperties;
 	
 	private final Logger logger = LoggerFactory.getLogger(ProductController.class);
 	
@@ -86,45 +96,70 @@ public class ProductController {
 	 */
 	@Authorization
 	@RequestMapping(value="/products", method=RequestMethod.POST)
-	public ReturnModel addProduct(HttpServletRequest request,
-			@RequestParam(value="name") String name,
-			@RequestParam(value="desc", required=false, defaultValue="") String desc,
-			@RequestParam(value="price") Double price,
-			@RequestParam(value="images", required=false, defaultValue="") MultipartFile[] images,
-			@RequestParam(value="catId", required=false, defaultValue="9") Long catId,
-			@RequestParam(value="tra_way", required=false, defaultValue="当面交易") String traWay,
-			@RequestParam(value="count") Integer count
-			) throws Exception {
-		Product entity = new Product();
-		entity.setName(name);
-		entity.setDesc(desc);
-		entity.setPrice(price);
-		entity.setCatId(catId);
-		entity.setTraWay(traWay);
-		entity.setCount(count);
+	public ReturnModel addProduct(@RequestBody Product entity,HttpServletRequest request) throws Exception {
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("\n*******toString():"+ request.toString())
+		  .append("\n*******getContentLength:" + request.getContentLength())
+		  .append("\n*******getAttributeNames:" + request.getAttributeNames())
+		  .append("\n*******getAuthType:" + request.getAuthType())
+		  .append("\n*******Header:" + request.getHeader("Content-Type"))
+		  .append("\n*******CharacterEncoding:" + request.getCharacterEncoding())
+		  .append("\n*******name:" + request.getParameter("name"))
+		  .append("\n*******price:" + request.getParameter("price"))
+		  .append("\n*******count:" + request.getParameter("count"))
+		  .append("\n*******Product:" + entity)
+		  .append("\n*******ParameterMap is below:");
+		for (Map.Entry<String, String[]> e : request.getParameterMap().entrySet())
+			sb.append("\n*******").append(e.getKey()).append(":").append(Arrays.toString(e.getValue()));
+		logger.info(sb.toString());
+		
 		entity.setMrktUser(ThisUser.get());
+		
 		// 处理图片
-		String rootpath = request.getServletContext().getRealPath("/");// 根路径
-		Set<Image> imageSet = new HashSet<>();
-		for (MultipartFile image : images) {
-			// 获取文件后缀名
-			String fileName = image.getOriginalFilename();
-			String suffixName = fileName.substring(fileName.lastIndexOf("."));
-			// 随机字符串加文件后缀名作为保存的文件名
-			String randomName = UUID.randomUUID() + suffixName;
-			String subpath = "upload/products/" + randomName;// 用于保存到数据库中的路径
-			
-			File filepath = new File(rootpath + subpath);
-			if (!filepath.getParentFile().exists())
-				filepath.getParentFile().mkdirs();
-			try {
-				image.transferTo(new File(rootpath + subpath));
-				imageSet.add(new Image(subpath));
-			} catch (Exception e) {
-				e.printStackTrace();
+		// 设置图片存储在主机上的根路径
+		String rootpath = (commonProperties.getRootpath() == null || commonProperties.getRootpath().length() < 1) ? 
+				request.getServletContext().getRealPath("/") : commonProperties.getRootpath();
+		Set<Image> images = entity.getImages();
+		if (images != null && images.size() > 0)
+			for (Image image : images) {
+				String base64Str = image.getPath();
+				String [] base64Arr = base64Str.split("base64,");
+				if (!(base64Arr != null && base64Arr.length == 2)) {
+					logger.error("【发布商品】 上传的base64字符串异常，base64Str={}", base64Str);
+					throw new MrktException(ResultEnum.UPLOAD_PICTRUE_FIAL);
+				}
+				String dataPrix = base64Arr[0];
+				String data = base64Arr[1];
+				
+				// 获取文件后缀名
+				String suffix = "";  
+		        if("data:image/jpeg;".equalsIgnoreCase(dataPrix)){//data:image/jpeg;base64,base64编码的jpeg图片数据  
+		            suffix = ".jpg";  
+		        } else if("data:image/x-icon;".equalsIgnoreCase(dataPrix)){//data:image/x-icon;base64,base64编码的icon图片数据  
+		            suffix = ".ico";  
+		        } else if("data:image/gif;".equalsIgnoreCase(dataPrix)){//data:image/gif;base64,base64编码的gif图片数据  
+		            suffix = ".gif";  
+		        } else if("data:image/png;".equalsIgnoreCase(dataPrix)){//data:image/png;base64,base64编码的png图片数据  
+		            suffix = ".png";  
+		        } else {
+		        	logger.error("【发布商品】 上传的图片文件后缀名错误，dataPrix={}", dataPrix);
+		            throw new MrktException(ResultEnum.UPLOAD_PICTRUE_FIAL);  
+		        }
+				// 随机字符串加文件后缀名作为保存的文件名
+				String randomName = UUID.randomUUID() + suffix;
+				String subpath = commonProperties.getImageUrl() + randomName;// 用于保存到数据库中的路径
+				
+				// 创建父目录
+				File filepath = new File(rootpath + subpath);
+				if (!filepath.getParentFile().exists())
+					filepath.getParentFile().mkdirs();
+				byte[] bs = Base64Utils.decodeFromString(data);
+				FileOutputStream fos = new FileOutputStream(rootpath + subpath);
+				fos.write(bs);
+				fos.close();
+				image.setPath(subpath);
 			}
-		}
-		entity.setImages(imageSet);
 		productService.saveOrUpdate(entity);
 		return ReturnModel.SUCCESS();
 	}
@@ -162,7 +197,7 @@ public class ProductController {
 				String suffixName = fileName.substring(fileName.lastIndexOf("."));
 				// 随机字符串加文件后缀名作为保存的文件名
 				String randomName = UUID.randomUUID() + suffixName;
-				String subpath = "upload/products/" + randomName;// 用于保存到数据库中的路径
+				String subpath = commonProperties.getImageUrl() + randomName;// 用于保存到数据库中的路径
 				
 				File filepath = new File(rootpath + subpath);
 				if (!filepath.getParentFile().exists())
@@ -266,5 +301,11 @@ public class ProductController {
 	public ReturnModel gePerMessage(@PathVariable("id") Long productId) throws Exception {
 		
 		return ReturnModel.SUCCESS(productService.getPreMessage(productId));
+	}
+	
+	public static void main(String[] args) {
+		Product product = new Product();
+		product.setName(null);
+		System.out.println();
 	}
 }

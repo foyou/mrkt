@@ -13,7 +13,6 @@ public class HomeController {
 	@RequestMapping("/")
 	@Authorization
 	public Object index(){
-		System.err.println("********************");
-		return "forward:/index.html";
+		return "index";
 	}
 }

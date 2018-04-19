@@ -79,13 +79,13 @@ public class AuthorizationInterceptor extends HandlerInterceptorAdapter{
 				authType.equals(xAuthTypeToken)
 				){
 					if ( (srectStr=request.getHeader(xAuthHeader) ) != null) {
-						logger.debug("Srect: " + srectStr);
+						logger.info("Srect: " + srectStr);
 					}
 				}
 		
 		if (method.getAnnotation(Authorization.class) != null){
 				if (srectStr == null ) {
-					logger.debug("Not Auth");
+					logger.info("Not Auth");
 		        		response.sendRedirect("https://open.weixin.qq.com/connect/oauth2/authorize?appid="
 		        				+this.wxAppId+
 		        				"&redirect_uri="
