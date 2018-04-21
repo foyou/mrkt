@@ -1,12 +1,10 @@
 package com.mrkt.product.api;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -14,23 +12,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.util.Base64Utils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.mrkt.authorization.annotation.Authorization;
-import com.mrkt.config.CommonProperties;
-import com.mrkt.constant.ResultEnum;
-import com.mrkt.exception.MrktException;
+import com.mrkt.config.CommonConfig;
 import com.mrkt.product.core.ProductService;
 import com.mrkt.product.model.Image;
 import com.mrkt.product.model.Product;
 import com.mrkt.usr.ThisUser;
+import com.mrkt.utils.UploadUtil;
+import com.mrkt.vo.CollProductVo;
 import com.mrkt.vo.ReturnModel;
 
 /**
@@ -46,7 +43,7 @@ public class ProductController {
 	@Autowired
 	private ProductService productService;
 	@Autowired
-	private CommonProperties commonProperties;
+	private CommonConfig commonConfig;
 	
 	private final Logger logger = LoggerFactory.getLogger(ProductController.class);
 	
@@ -73,8 +70,8 @@ public class ProductController {
 	 */
 	@RequestMapping(value="/products/all", method=RequestMethod.GET)
 	public ReturnModel getProducts(
-			@RequestParam("curr_page") Integer currPage, 
-			@RequestParam(value="type", required=false) Long catId, 
+			@RequestParam(value="curr_page", defaultValue="1") Integer currPage, 
+			@RequestParam(value="catId", required=false) Long catId, 
 			@RequestParam(value="order_way", required=false) String orderWay, 
 			@RequestParam(value="keywords", required=false) String keywords) throws Exception {
 		Page<Product> page = productService.findPage(currPage-1, catId, orderWay, keywords);
@@ -83,20 +80,13 @@ public class ProductController {
 	
 	/**
 	 * 上架新商品
-	 * @param name
-	 * @param desc
-	 * @param price
-	 * @param images
-	 * @param catId
-	 * @param traWay
-	 * @param count
-	 * @param uid
+	 * @param entity
 	 * @return
 	 * @throws Exception 
 	 */
 	@Authorization
 	@RequestMapping(value="/products", method=RequestMethod.POST)
-	public ReturnModel addProduct(@RequestBody Product entity,HttpServletRequest request) throws Exception {
+	public ReturnModel addProduct(@RequestBody Product entity, HttpServletRequest request) throws Exception {
 		
 		StringBuilder sb = new StringBuilder();
 		sb.append("\n*******toString():"+ request.toString())
@@ -117,48 +107,14 @@ public class ProductController {
 		entity.setMrktUser(ThisUser.get());
 		
 		// 处理图片
-		// 设置图片存储在主机上的根路径
-		String rootpath = (commonProperties.getRootpath() == null || commonProperties.getRootpath().length() < 1) ? 
-				request.getServletContext().getRealPath("/") : commonProperties.getRootpath();
 		Set<Image> images = entity.getImages();
 		if (images != null && images.size() > 0)
 			for (Image image : images) {
-				String base64Str = image.getPath();
-				String [] base64Arr = base64Str.split("base64,");
-				if (!(base64Arr != null && base64Arr.length == 2)) {
-					logger.error("【发布商品】 上传的base64字符串异常，base64Str={}", base64Str);
-					throw new MrktException(ResultEnum.UPLOAD_PICTRUE_FIAL);
-				}
-				String dataPrix = base64Arr[0];
-				String data = base64Arr[1];
-				
-				// 获取文件后缀名
-				String suffix = "";  
-		        if("data:image/jpeg;".equalsIgnoreCase(dataPrix)){//data:image/jpeg;base64,base64编码的jpeg图片数据  
-		            suffix = ".jpg";  
-		        } else if("data:image/x-icon;".equalsIgnoreCase(dataPrix)){//data:image/x-icon;base64,base64编码的icon图片数据  
-		            suffix = ".ico";  
-		        } else if("data:image/gif;".equalsIgnoreCase(dataPrix)){//data:image/gif;base64,base64编码的gif图片数据  
-		            suffix = ".gif";  
-		        } else if("data:image/png;".equalsIgnoreCase(dataPrix)){//data:image/png;base64,base64编码的png图片数据  
-		            suffix = ".png";  
-		        } else {
-		        	logger.error("【发布商品】 上传的图片文件后缀名错误，dataPrix={}", dataPrix);
-		            throw new MrktException(ResultEnum.UPLOAD_PICTRUE_FIAL);  
-		        }
-				// 随机字符串加文件后缀名作为保存的文件名
-				String randomName = UUID.randomUUID() + suffix;
-				String subpath = commonProperties.getImageUrl() + randomName;// 用于保存到数据库中的路径
-				
-				// 创建父目录
-				File filepath = new File(rootpath + subpath);
-				if (!filepath.getParentFile().exists())
-					filepath.getParentFile().mkdirs();
-				byte[] bs = Base64Utils.decodeFromString(data);
-				FileOutputStream fos = new FileOutputStream(rootpath + subpath);
-				fos.write(bs);
-				fos.close();
-				image.setPath(subpath);
+				// 上传至七牛云服务器
+				String path = UploadUtil.uploadImage(image.getPath(), commonConfig);
+				if (path == null)
+					logger.error("【发布商品】 图片上传失败，base64={}" + image.getPath());
+				image.setPath(path);
 			}
 		productService.saveOrUpdate(entity);
 		return ReturnModel.SUCCESS();
@@ -170,46 +126,17 @@ public class ProductController {
 	 */
 	@Authorization
 	@RequestMapping(value="/products/{id}", method=RequestMethod.PUT)
-	public ReturnModel updateProduct(HttpServletRequest request,
-			@PathVariable("id") Long id,
-			@RequestParam(value="name") String name,
-			@RequestParam(value="desc") String desc,
-			@RequestParam(value="price") Double price,
-			@RequestParam(value="images", required=false) MultipartFile[] images,
-			@RequestParam(value="catId") Long catId,
-			@RequestParam(value="tra_way", required=false, defaultValue="当面交易") String traWay,
-			@RequestParam(value="count") Integer count) throws Exception {
-		Product entity = new Product();
-		entity.setId(id);
-		entity.setName(name);
-		entity.setDesc(desc);
-		entity.setPrice(price);
-		entity.setCatId(catId);
-		entity.setTraWay(traWay);
-		entity.setCount(count);
+	public ReturnModel updateProduct(@RequestBody Product entity, HttpServletRequest request) throws Exception {
 		// 处理图片
-		String rootpath = request.getServletContext().getRealPath("/");// 根路径
-		Set<Image> imageSet = new HashSet<>();
-		if (images != null)
-			for (MultipartFile image : images) {
-				// 获取文件后缀名
-				String fileName = image.getOriginalFilename();
-				String suffixName = fileName.substring(fileName.lastIndexOf("."));
-				// 随机字符串加文件后缀名作为保存的文件名
-				String randomName = UUID.randomUUID() + suffixName;
-				String subpath = commonProperties.getImageUrl() + randomName;// 用于保存到数据库中的路径
-				
-				File filepath = new File(rootpath + subpath);
-				if (!filepath.getParentFile().exists())
-					filepath.getParentFile().mkdirs();
-				try {
-					image.transferTo(new File(rootpath + subpath));
-					imageSet.add(new Image(subpath));
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+		Set<Image> images = entity.getImages();
+		if (images != null && images.size() > 0)
+			for (Image image : images) {
+				// 上传至七牛云服务器
+				String path = UploadUtil.uploadImage(image.getPath(), commonConfig);
+				if (path == null)
+					logger.error("【修改商品】 图片上传失败，base64={}" + image.getPath());
+				image.setPath(path);
 			}
-		entity.setImages(imageSet);
 		productService.saveOrUpdate(entity);
 		return ReturnModel.SUCCESS();
 	}
@@ -277,7 +204,9 @@ public class ProductController {
 	@Authorization
 	@RequestMapping(value="/products/mine", method=RequestMethod.GET)
 	public ReturnModel getMine() throws Exception {
-		return ReturnModel.SUCCESS(productService.getMine());
+		List<Product> productList = productService.getMine();
+
+		return ReturnModel.SUCCESS(productList);
 	}
 	
 	/**
@@ -288,7 +217,24 @@ public class ProductController {
 	@Authorization
 	@RequestMapping(value="/products/collection", method=RequestMethod.GET)
 	public ReturnModel getCollection() throws Exception {
-		return ReturnModel.SUCCESS(productService.getCollection());
+		List<Product> productList = productService.getCollection();
+		List<CollProductVo> resultList = new ArrayList<>();
+		
+		if (!CollectionUtils.isEmpty(productList)) {
+			productList.forEach(e -> {
+				CollProductVo collProductVo = new CollProductVo();
+				collProductVo.setName(e.getName());
+				collProductVo.setPrice(e.getPrice());
+				collProductVo.setProductId(e.getId());
+				collProductVo.setSellerId(e.getMrktUser().getUid());
+				if (!CollectionUtils.isEmpty(e.getImages())) {
+					collProductVo.setPic(e.getImages().iterator().next().getPath());
+				}
+				
+				resultList.add(collProductVo);
+			});
+		}
+		return ReturnModel.SUCCESS(resultList);
 	}
 	
 	/**
@@ -303,9 +249,4 @@ public class ProductController {
 		return ReturnModel.SUCCESS(productService.getPreMessage(productId));
 	}
 	
-	public static void main(String[] args) {
-		Product product = new Product();
-		product.setName(null);
-		System.out.println();
-	}
 }

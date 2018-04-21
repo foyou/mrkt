@@ -32,6 +32,7 @@ import com.mrkt.vo.ReturnModel;
 @SpringBootTest
 public class ProductServiceImplTest {
 
+	@SuppressWarnings("unused")
 	private final Logger logger = LoggerFactory.getLogger(ProductServiceImplTest.class);
 	
 	@Autowired

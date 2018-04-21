@@ -1,7 +1,12 @@
 package com.mrkt.product.api;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -11,7 +16,11 @@ import com.mrkt.authorization.annotation.Authorization;
 import com.mrkt.constant.OrderStatusEnum;
 import com.mrkt.product.core.OrderService;
 import com.mrkt.product.model.Order;
+import com.mrkt.product.model.Product;
+import com.mrkt.vo.BuyProductVo;
+import com.mrkt.vo.OrderProductVo;
 import com.mrkt.vo.ReturnModel;
+import com.mrkt.vo.SellProductVo;
 
 /**
  * 商品订单 控制器.
@@ -35,7 +44,8 @@ public class OrderController {
 	@RequestMapping(value="/product/{product_id}", method=RequestMethod.POST)
 	public ReturnModel requestOrder(
 			@PathVariable("product_id") Long productId,
-			@RequestParam("message") String message) throws Exception {
+//			@RequestParam("message") String message) throws Exception {//TODO
+		    @RequestBody String message) throws Exception {
 		Order order = new Order();
 		order.setMessage(message);
 		return orderService.requestOrder(order, productId) ?
@@ -183,7 +193,29 @@ public class OrderController {
 	@Authorization
 	@RequestMapping(value="/buyer/ordering", method=RequestMethod.GET)
 	public ReturnModel findOrdering() throws Exception {
-		return ReturnModel.SUCCESS(orderService.findByStateAsBuyer(0, 2));
+		List<Order> orderList = orderService.findByStateAsBuyer(0, 2);
+		List<OrderProductVo> resultList = new ArrayList<>();
+		
+		if (!CollectionUtils.isEmpty(orderList)) {
+			orderList.forEach(e -> {
+				OrderProductVo orderProductVo = new OrderProductVo();
+				Product product = e.getProduct();
+				orderProductVo.setName(product.getName());
+				orderProductVo.setPrice(e.getAmount());
+				orderProductVo.setProductId(product.getId());
+				orderProductVo.setSellerId(e.getSellerId());// 设置预定商品的卖家主键
+				if (!CollectionUtils.isEmpty(product.getImages())) {
+					orderProductVo.setPic(product.getImages().iterator().next().getPath());
+				}
+				orderProductVo.setTime(e.getCreateTime());
+				orderProductVo.setPreMessage(e.getMessage());
+				orderProductVo.setState(e.getState());
+				orderProductVo.setOrderId(e.getId());
+				resultList.add(orderProductVo);
+			});
+		}
+		
+		return ReturnModel.SUCCESS(resultList);
 	}
 	
 	/**
@@ -194,7 +226,27 @@ public class OrderController {
 	@Authorization
 	@RequestMapping(value="/buyer/buy", method=RequestMethod.GET)
 	public ReturnModel findBuy() throws Exception {
-		return ReturnModel.SUCCESS(orderService.findByStateAsBuyer(3, 4));
+		List<Order> orderList = orderService.findByStateAsBuyer(3, 4);
+		List<BuyProductVo> resultList = new ArrayList<>();
+		
+		if (!CollectionUtils.isEmpty(orderList)) {
+			orderList.forEach(e -> {
+				BuyProductVo buyProductVo = new BuyProductVo();
+				Product product = e.getProduct();
+				buyProductVo.setName(product.getName());
+				buyProductVo.setPrice(e.getAmount());
+				buyProductVo.setProductId(product.getId());
+				buyProductVo.setSellerId(e.getSellerId());// 设置购买的卖家主键
+				if (!CollectionUtils.isEmpty(product.getImages())) {
+					buyProductVo.setPic(product.getImages().iterator().next().getPath());
+				}
+				buyProductVo.setTime(e.getCreateTime());// TODO时间有问题
+				buyProductVo.setOrderId(e.getId());
+				resultList.add(buyProductVo);
+			});
+		}
+		
+		return ReturnModel.SUCCESS(resultList);
 	}
 	
 	/**
@@ -205,6 +257,28 @@ public class OrderController {
 	@Authorization
 	@RequestMapping(value="/seller", method=RequestMethod.GET)
 	public ReturnModel findByStateAsSeller() throws Exception {
-		return ReturnModel.SUCCESS(orderService.findByStateAsSeller());
+		List<Order> orderList = orderService.findByStateAsSeller();
+		List<SellProductVo> resultList = new ArrayList<>();
+		
+		if (!CollectionUtils.isEmpty(orderList)) {
+			orderList.forEach(e -> {
+				SellProductVo sellProductVo = new SellProductVo();
+				Product product = e.getProduct();
+				sellProductVo.setName(product.getName());
+				sellProductVo.setPrice(e.getAmount());
+				sellProductVo.setProductId(product.getId());
+				sellProductVo.setBuyerId(e.getBuyerId());// 设置购买的买家主键
+				sellProductVo.setTime(product.getTmUpdated());
+				if (!CollectionUtils.isEmpty(product.getImages())) {
+					sellProductVo.setPic(product.getImages().iterator().next().getPath());
+				}
+				sellProductVo.setOrderId(e.getId());
+				
+				resultList.add(sellProductVo);
+			});
+		}
+		
+		
+		return ReturnModel.SUCCESS(resultList);
 	}
 }

@@ -1,6 +1,7 @@
 package com.mrkt.usr.dao;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,8 +11,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.mrkt.usr.model.Customer;
 import com.mrkt.usr.model.UserBase;
-
-import static org.junit.Assert.*;
 
 
 @RunWith(SpringRunner.class)

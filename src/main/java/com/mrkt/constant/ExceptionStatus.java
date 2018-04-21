@@ -3,7 +3,7 @@ package com.mrkt.constant;
 import com.mrkt.config.StatusCodeConf;
 
 public enum ExceptionStatus {
-	 SUCCESS(StatusCodeConf.SUCCESS, "成功"),
+	SUCCESS(StatusCodeConf.SUCCESS, "成功"),
     ERROR(StatusCodeConf.ErrorCode, "失败");
 	
 	public static String DiY_OK_MESSAGE = "(=ↀωↀ=)";

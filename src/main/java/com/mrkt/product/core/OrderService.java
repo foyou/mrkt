@@ -82,6 +82,15 @@ public interface OrderService {
 	List<Order> findByStateAsSeller() throws Exception;
 	
 	/**
+	 * 查询指定订单状态的商品订单
+	 * @param uid 被查询的用户的uid
+	 * @param buyerSeller 被查询的身份，如buyerId
+	 * @return
+	 * @throws Exception 
+	 */
+	List<Order> findByState(Integer state, long uid, String buyerSeller) throws Exception;
+	
+	/**
 	 * 买家删除任何状态的订单，终止本次交易。
 	 * @param id
 	 * @return

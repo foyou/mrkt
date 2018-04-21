@@ -221,7 +221,7 @@ public class OrderServiceImpl implements OrderService {
 		Specification<Order> sp = (root, query, builder) -> {
 			List<Predicate> predicates = new ArrayList<>();
 			predicates.add(builder.between(root.get("state").as(Integer.class), stateBegin, stateEnd));
-			predicates.add(builder.equal(root.get("buyerId").as(String.class), ThisUser.get().getUid()));
+			predicates.add(builder.equal(root.get("buyerId").as(Long.class), ThisUser.get().getUid()));
 			return builder.and(predicates.toArray(new Predicate[predicates.size()]));
 		};
 		return orderRepository.findAll(sp);
@@ -231,8 +231,9 @@ public class OrderServiceImpl implements OrderService {
 	public List<Order> findByStateAsSeller() throws Exception {
 		Specification<Order> sp = (root, query, builder) -> {
 			List<Predicate> predicates = new ArrayList<>();
-			predicates.add(builder.notEqual(root.get("state").as(Integer.class), OrderStatusEnum.BE_CANCELED.getCode()));
-			predicates.add(builder.equal(root.get("sellerId").as(String.class), ThisUser.get().getUid()));
+			predicates.add(builder.between(root.join("product").get("state").as(Integer.class), 
+					ProductStatusEnum.BE_ORDERED.getCode(), ProductStatusEnum.BE_SOLD.getCode()));
+			predicates.add(builder.equal(root.get("sellerId").as(Long.class), ThisUser.get().getUid()));
 			return builder.and(predicates.toArray(new Predicate[predicates.size()]));
 		};
 		return orderRepository.findAll(sp);
@@ -259,6 +260,17 @@ public class OrderServiceImpl implements OrderService {
 		}
 		order.setState(OrderStatusEnum.BE_DELETED.getCode());
 		return orderRepository.save(order) != null;
+	}
+
+	@Override
+	public List<Order> findByState(Integer state, long uid, String buyerSeller) throws Exception {
+		Specification<Order> sp = (root, query, builder) -> {
+			List<Predicate> predicates = new ArrayList<>();
+			predicates.add(builder.equal(root.get("state").as(Integer.class), state));
+			predicates.add(builder.equal(root.get(buyerSeller).as(Long.class), uid));
+			return builder.and(predicates.toArray(new Predicate[predicates.size()]));
+		};
+		return orderRepository.findAll(sp);
 	}
 
 }

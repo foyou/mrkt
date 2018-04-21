@@ -44,6 +44,10 @@ public class ReturnModel implements Serializable {
 		return new ReturnModel(exceptionStatus, ExceptionStatus.DiY_ERROR_MESSAGE); 
 	}
 	
+	public static ReturnModel ERROR(ExceptionStatus exceptionStatus, String content){
+		return new ReturnModel(exceptionStatus, content); 
+	}
+	
 	public static ReturnModel ERROR(){
 		return new ReturnModel(ExceptionStatus.ERROR, ExceptionStatus.DiY_ERROR_MESSAGE); 
 	}

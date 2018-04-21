@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import com.mrkt.config.CommonProperties;
 import com.mrkt.constant.ProductStatusEnum;
 import com.mrkt.constant.ResultEnum;
 import com.mrkt.exception.MrktException;
@@ -32,7 +31,6 @@ import com.mrkt.product.dao.CategoryRepository;
 import com.mrkt.product.dao.OrderRepository;
 import com.mrkt.product.dao.ProductRepository;
 import com.mrkt.product.model.Comment;
-import com.mrkt.product.model.Image;
 import com.mrkt.product.model.Product;
 import com.mrkt.usr.ThisUser;
 import com.mrkt.usr.dao.UserRepository;
@@ -53,8 +51,6 @@ public class ProductServiceImpl implements ProductService {
 	private CategoryRepository categoryRepository;
 	@Autowired
 	private OrderRepository orderRepository;
-	@Autowired
-	private CommonProperties commonProperties;
 	
 	@SuppressWarnings("rawtypes")
 	@Autowired
@@ -73,10 +69,6 @@ public class ProductServiceImpl implements ProductService {
 		// 查询一次具体商品详情浏览量加1
 		entity.setViews(entity.getViews()+1);
 		entity = productRepository.save(entity);
-		Set<Image> images = entity.getImages();
-		if (!CollectionUtils.isEmpty(images)) {
-			images.forEach(e -> e.setPath(commonProperties.getProjectUrl() + "/" + e.getPath()));
-		}
 		UserBase currUser = null;
 		if ((currUser = ThisUser.get()) != null) {
 			entity.setIsLike(redisTemplate.boundSetOps("pro_like_" + id).
@@ -88,6 +80,7 @@ public class ProductServiceImpl implements ProductService {
 	}
 	
 	@Override
+	@Transactional
 	public void saveOrUpdate(Product entity) throws Exception{
 		if (entity.getId() != null && entity.getId() >= 0) {   // 更新商品信息
 			Product po = productRepository.findOne(entity.getId());
@@ -154,10 +147,6 @@ public class ProductServiceImpl implements ProductService {
 		UserBase currUser = null;
 		if ((currUser = ThisUser.get()) != null)
 			for (Product product : page) {
-				Set<Image> images = product.getImages();
-				if (!CollectionUtils.isEmpty(images)) {
-					images.forEach(e -> e.setPath(commonProperties.getProjectUrl() + "/" + e.getPath()));
-				}
 				product.setIsLike(redisTemplate.boundSetOps("pro_like_" + product.getId()).
 							isMember(currUser.getUid()));
 				product.setIsColl(redisTemplate.boundSetOps("pro_coll_" + product.getId()).
@@ -316,7 +305,7 @@ public class ProductServiceImpl implements ProductService {
 	public List<Product> getMine() throws Exception {
 		Specification<Product> sp = (root, query, builder) -> {
 			List<Predicate> predicates = new ArrayList<>();
-			predicates.add(builder.equal(root.get("state").as(Integer.class), 1));
+			predicates.add(builder.equal(root.get("state").as(Integer.class), ProductStatusEnum.ON_SALE.getCode()));
 			predicates.add(builder.equal(root.get("mrktUser").as(UserBase.class), ThisUser.get()));
 			return builder.and(predicates.toArray(new Predicate[predicates.size()]));
 		};

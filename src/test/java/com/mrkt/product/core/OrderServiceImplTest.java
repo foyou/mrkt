@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.mrkt.constant.OrderStatusEnum;
 import com.mrkt.product.model.Order;
 import com.mrkt.usr.ThisUser;
 import com.mrkt.usr.core.UserServiceImpl;
@@ -31,12 +32,13 @@ public class OrderServiceImplTest {
 	@Autowired
 	private UserServiceImpl userServiceImpl;
 	
+	@SuppressWarnings("unused")
 	private final Logger logger = LoggerFactory.getLogger(OrderServiceImplTest.class);
 	
 	@Before
 	public void setUp() throws Exception {
-		ThisUser.set(userServiceImpl.get(2l));// 买家
-//		ThisUser.set(userServiceImpl.get(1l));// 卖家
+//		ThisUser.set(userServiceImpl.get(2l));// 买家
+		ThisUser.set(userServiceImpl.get(1l));// 卖家
 	}
 	
 	@Test
@@ -101,6 +103,16 @@ public class OrderServiceImplTest {
 	@Test
 	public void testFindByStateAsSeller() throws Exception {
 		List<Order> list = orderService.findByStateAsSeller();
+		System.err.println(list.size());
+		for (Order order : list) {
+			System.err.println(order);
+		}
+	}
+	
+	@Test
+	public void testFindByState() throws Exception {
+//		List<Order> list = orderService.findByState(OrderStatusEnum.BE_COMPLETE.getCode(), 1l, "sellerId");
+		List<Order> list = orderService.findByState(OrderStatusEnum.BE_COMPLETE.getCode(), 2l, "buyerId");
 		System.err.println(list.size());
 		for (Order order : list) {
 			System.err.println(order);

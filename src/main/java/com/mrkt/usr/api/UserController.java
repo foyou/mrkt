@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.alibaba.fastjson.JSON;
 import com.mrkt.authorization.annotation.Authorization;
 import com.mrkt.usr.core.UserServiceImpl;
 import com.mrkt.vo.ReturnModel;
@@ -43,10 +42,36 @@ public class UserController {
 	 */
 	@Authorization
 	@RequestMapping(value="/{uid}", method=RequestMethod.PUT)
-	public String editUser(@PathVariable("uid") Long uid) {
-		// 修改
+	public ReturnModel editUser(@PathVariable("uid") Long uid) {
+		// 修改 TODO
 		
-		return JSON.toJSONString(userService.get(uid));
+		return ReturnModel.SUCCESS(userService.get(uid));
+	}
+	
+	/**
+	 * 获取用户买家身份信息
+	 * @param uid
+	 * @return
+	 * @throws Exception 
+	 */
+	@Authorization
+	@RequestMapping(value="/{uid}/buyer", method=RequestMethod.GET)
+	public ReturnModel getUserBuyerInfo(@PathVariable("uid") Long uid) throws Exception {
+		
+		return ReturnModel.SUCCESS(userService.getUserBuyerInfo(uid));
+	}
+	
+	/**
+	 * 获取用户卖家身份信息
+	 * @param uid
+	 * @return
+	 * @throws Exception 
+	 */
+	@Authorization
+	@RequestMapping(value="/{uid}/seller", method=RequestMethod.GET)
+	public ReturnModel getUserSellerInfo(@PathVariable("uid") Long uid) throws Exception {
+		
+		return ReturnModel.SUCCESS(userService.getUserSellerInfo(uid));
 	}
 	
 }

@@ -34,6 +34,6 @@ public class MyExceptionHandlerAdvice {
     @ExceptionHandler(value = MrktException.class)
     public @ResponseBody ReturnModel exception(MrktException e) {
     	logger.error("【用户操作异常】 " + e.getMessage());
-        return ReturnModel.ERROR(ExceptionStatus.ERROR);
+        return ReturnModel.ERROR(ExceptionStatus.ERROR, e.getMessage());
     }
 }

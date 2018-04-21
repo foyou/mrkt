@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
 /**
- * @ClassName	CommonProperties
+ * @ClassName	CommonConfig
  * @Description
  * @author		hdonghong
  * @version 	v1.0
@@ -13,13 +13,13 @@ import org.springframework.context.annotation.PropertySource;
  */
 @Configuration
 @PropertySource("classpath:staticconfig.properties")
-public class CommonProperties {
+public class CommonConfig {
 
 	/** 项目的域名地址 */
 	@Value("${common.project.url}")
 	private String projectUrl;
 	
-	/** 图片在主机上的相对地址，存储到数据库中 */
+	/** 图片所存储的服务器url，存储到数据库中 */
 	@Value("${common.image.url}")
 	private String imageUrl;
 	
@@ -27,6 +27,23 @@ public class CommonProperties {
 	@Value("${common.image.root}")
 	private String rootpath;
 
+	/** 七牛云AccessKey */
+	@Value("${common.image.accesskey}")
+	private String accessKey;
+	
+	/** 七牛云SecretKey */
+	@Value("${common.image.secretKey}")
+	private String secretKey;
+	
+	/** 七牛云存储空间名称 */
+	@Value("${common.image.bucket}")
+	private String bucket;
+	
+	
+	
+	
+	
+	
 	public String getProjectUrl() {
 		return projectUrl;
 	}
@@ -50,5 +67,30 @@ public class CommonProperties {
 	public void setRootpath(String rootpath) {
 		this.rootpath = rootpath;
 	}
+
+	public String getAccessKey() {
+		return accessKey;
+	}
+
+	public void setAccessKey(String accessKey) {
+		this.accessKey = accessKey;
+	}
+
+	public String getSecretKey() {
+		return secretKey;
+	}
+
+	public void setSecretKey(String secretKey) {
+		this.secretKey = secretKey;
+	}
+
+	public String getBucket() {
+		return bucket;
+	}
+
+	public void setBucket(String bucket) {
+		this.bucket = bucket;
+	}
+	
 	
 }

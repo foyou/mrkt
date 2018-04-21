@@ -74,8 +74,9 @@ public class Order implements Serializable {
 	@Column(name = "amount")
 	private Double amount = 0d;             // 总金额
 
+	/** 订单状态，0取消，1请求预定等待卖家接受预定，2待支付，3待确定收货，4待双方评价， -1已删除 */
 	@Column(name = "state")
-	private Integer state = OrderStatusEnum.BE_WAITING_ACCEPTED.getCode();  // 订单状态，0取消，1请求预定等待卖家接受预定，2待支付，3待确定收货，4待双方评价， -1已删除
+	private Integer state = OrderStatusEnum.BE_WAITING_ACCEPTED.getCode();
 
 	@Column(name = "message")
 	private String message;                 // 买家预定留言
@@ -95,7 +96,7 @@ public class Order implements Serializable {
 	
 	@Override
 	public String toString() {
-		return "Order [id=" + id + ", product=" + product + ", buyerId=" + buyerId + ", buyerName=" + buyerName
+		return "Order [id=" + id + ", product=省略" + ", buyerId=" + buyerId + ", buyerName=" + buyerName
 				+ ", buyerWx=" + buyerWx + ", buyerPhone=" + buyerPhone + ", buyerScore=" + buyerScore
 				+ ", buyerComment=" + buyerComment + ", sellerId=" + sellerId + ", sellerName=" + sellerName
 				+ ", sellerScore=" + sellerScore + ", sellerComment=" + sellerComment + ", amount=" + amount

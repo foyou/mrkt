@@ -35,6 +35,8 @@ public enum ResultEnum {
 	
 	UPLOAD_PICTRUE_FIAL(21, "图片上传失败"),
 	
+	USER_NOT_EXIT(22, "用户不存在错误"),
+	
 	;
 	
 	/** 状态码 */

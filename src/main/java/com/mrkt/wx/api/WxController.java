@@ -26,7 +26,9 @@ public class WxController {
 	public final static String token;;
 	private final static String  APPID;
 	private final static String APPSRECT;
+	@SuppressWarnings("unused")
 	private final static String GRANT_TYPE;		
+	@SuppressWarnings("unused")
 	private static final String USER_CACHE = "user";
 
 	protected static Logger logger = LoggerFactory.getLogger(WxController.class);

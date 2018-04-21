@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /**
  * @ClassName	PreMessageVo
- * @Description
+ * @Description 预定留言
  * @author		hdonghong
  * @version 	v1.0
  * @since		2018/04/06 23:24:58
