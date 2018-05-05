@@ -4,7 +4,7 @@ import java.util.Date;
 
 /**
  * @ClassName	OrderProductVo
- * @Description
+ * @Description 预定商品的订单VO类
  * @author		hdonghong
  * @version 	v1.0
  * @since		2018/04/19 19:57:08

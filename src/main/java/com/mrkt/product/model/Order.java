@@ -11,6 +11,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
 
 import com.mrkt.constant.OrderStatusEnum;
@@ -23,6 +24,7 @@ import com.mrkt.constant.OrderStatusEnum;
  * @since		2018/02/24 20:36:27
  */
 @Entity
+@DynamicUpdate
 @Table(name="mrkt_pro_order")
 public class Order implements Serializable {
 
@@ -87,6 +89,9 @@ public class Order implements Serializable {
 	@Column(name = "create_time")
 	private Date createTime;                // 订单生成时间
 
+	@Column(name = "update_time")
+	private Date updateTime;
+	
 	@Column(name = "end_time")
 	private Date endTime;                   // 订单完成时间
 
@@ -247,5 +252,12 @@ public class Order implements Serializable {
 	public void setEndTime(Date endTime) {
 		this.endTime = endTime;
 	}
-	
+
+	public Date getUpdateTime() {
+		return updateTime;
+	}
+
+	public void setUpdateTime(Date updateTime) {
+		this.updateTime = updateTime;
+	}
 }

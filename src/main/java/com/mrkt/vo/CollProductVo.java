@@ -2,7 +2,7 @@ package com.mrkt.vo;
 
 /**
  * @ClassName	CollProductVo
- * @Description 收藏的商品
+ * @Description 收藏的商品VO类
  * @author		hdonghong
  * @version 	v1.0
  * @since		2018/04/19 20:04:33

@@ -25,7 +25,11 @@ public class UploadUtil {
 	public static String uploadImage(String base64Str, CommonConfig commonConfig) throws QiniuException {
 		String [] base64Arr = base64Str.split("base64,");
 		if (!(base64Arr != null && base64Arr.length == 2)) {
-			return null;
+			if (base64Arr != null) {
+				return base64Str.contains(commonConfig.getImageUrl()) ? base64Str : null;
+			} else {
+				return null;
+			}
 		}
 //		String dataPrix = base64Arr[0];
 		String data = base64Arr[1];

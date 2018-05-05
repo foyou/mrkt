@@ -1,6 +1,7 @@
 package com.mrkt.product.api;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mrkt.authorization.annotation.Authorization;
@@ -19,8 +19,11 @@ import com.mrkt.product.model.Order;
 import com.mrkt.product.model.Product;
 import com.mrkt.vo.BuyProductVo;
 import com.mrkt.vo.OrderProductVo;
+import com.mrkt.vo.OrderVo;
+import com.mrkt.vo.PreMessageVo;
 import com.mrkt.vo.ReturnModel;
 import com.mrkt.vo.SellProductVo;
+import com.mrkt.vo.UserCommentVo;
 
 /**
  * 商品订单 控制器.
@@ -44,10 +47,12 @@ public class OrderController {
 	@RequestMapping(value="/product/{product_id}", method=RequestMethod.POST)
 	public ReturnModel requestOrder(
 			@PathVariable("product_id") Long productId,
-//			@RequestParam("message") String message) throws Exception {//TODO
-		    @RequestBody String message) throws Exception {
+		    @RequestBody PreMessageVo preMessage) throws Exception {
 		Order order = new Order();
-		order.setMessage(message);
+		if (preMessage != null) {
+			order.setMessage(preMessage.getMessage());
+		}
+		order.setUpdateTime(new Date());
 		return orderService.requestOrder(order, productId) ?
 				ReturnModel.SUCCESS() : ReturnModel.ERROR();
 	}
@@ -106,18 +111,14 @@ public class OrderController {
 	 */
 	@Authorization
 	@RequestMapping(value="/{id}", method=RequestMethod.PUT)
-	public ReturnModel submitOrder(
-			@PathVariable("id") String id,
-			@RequestParam("buyer_name") String buyerName,
-			@RequestParam("address") String address,
-			@RequestParam("phone") String phone,
-			@RequestParam("buyer_wx") String buyerWx) throws Exception {
+	public ReturnModel submitOrder(@PathVariable("id") String id, @RequestBody OrderVo orderVo) 
+			throws Exception {
 		Order order = new Order();
 		order.setId(id);
-		order.setBuyerName(buyerName);
-		order.setAddress(address);
-		order.setBuyerPhone(phone);
-		order.setBuyerWx(buyerWx);
+		order.setBuyerName(orderVo.getBuyer_name());
+		order.setAddress(orderVo.getAddress());
+		order.setBuyerPhone(orderVo.getPhone());
+		order.setBuyerWx(orderVo.getBuyer_wx());
 		return orderService.submitOrder(order) ?
 				ReturnModel.SUCCESS() : ReturnModel.ERROR();
 	}
@@ -148,9 +149,8 @@ public class OrderController {
 	@RequestMapping(value="/{id}/buyer/comment", method=RequestMethod.PUT)
 	public ReturnModel commentBuyer(
 			@PathVariable("id") String id,
-			@RequestParam("score") Integer score,
-			@RequestParam("comment") String comment) throws Exception {
-		return orderService.commentBuyer(id, score, comment) ?
+			@RequestBody UserCommentVo userCommentVo) throws Exception {
+		return orderService.commentBuyer(id, userCommentVo.getScore(), userCommentVo.getComment()) ?
 				ReturnModel.SUCCESS() : ReturnModel.ERROR();
 	}
 	
@@ -164,11 +164,9 @@ public class OrderController {
 	 */
 	@Authorization
 	@RequestMapping(value="/{id}/seller/comment", method=RequestMethod.PUT)
-	public ReturnModel commentSeller(
-			@PathVariable("id") String id,
-			@RequestParam("score") Integer score,
-			@RequestParam("comment") String comment) throws Exception {
-		return orderService.commentSeller(id, score, comment) ?
+	public ReturnModel commentSeller(@PathVariable("id") String id,@RequestBody UserCommentVo userCommentVo) 
+					throws Exception {
+		return orderService.commentSeller(id, userCommentVo.getScore(), userCommentVo.getComment()) ?
 				ReturnModel.SUCCESS() : ReturnModel.ERROR();
 	}
 	
@@ -193,7 +191,8 @@ public class OrderController {
 	@Authorization
 	@RequestMapping(value="/buyer/ordering", method=RequestMethod.GET)
 	public ReturnModel findOrdering() throws Exception {
-		List<Order> orderList = orderService.findByStateAsBuyer(0, 2);
+		List<Order> orderList = orderService.findByStateAsBuyer(
+				OrderStatusEnum.BE_CANCELED.getCode(), OrderStatusEnum.BE_WAITING_RECEIVING.getCode());
 		List<OrderProductVo> resultList = new ArrayList<>();
 		
 		if (!CollectionUtils.isEmpty(orderList)) {
@@ -207,7 +206,7 @@ public class OrderController {
 				if (!CollectionUtils.isEmpty(product.getImages())) {
 					orderProductVo.setPic(product.getImages().iterator().next().getPath());
 				}
-				orderProductVo.setTime(e.getCreateTime());
+				orderProductVo.setTime(e.getUpdateTime());
 				orderProductVo.setPreMessage(e.getMessage());
 				orderProductVo.setState(e.getState());
 				orderProductVo.setOrderId(e.getId());
@@ -219,14 +218,15 @@ public class OrderController {
 	}
 	
 	/**
-	 * 查询我买到的，包括待收货和待评价和评价好的
+	 * 查询我买到的，包括待评价和评价好的
 	 * @return
 	 * @throws Exception 
 	 */
 	@Authorization
 	@RequestMapping(value="/buyer/buy", method=RequestMethod.GET)
 	public ReturnModel findBuy() throws Exception {
-		List<Order> orderList = orderService.findByStateAsBuyer(3, 4);
+		List<Order> orderList = orderService.findByStateAsBuyer(
+				OrderStatusEnum.BE_COMMENTING.getCode(), OrderStatusEnum.BE_COMPLETE.getCode());
 		List<BuyProductVo> resultList = new ArrayList<>();
 		
 		if (!CollectionUtils.isEmpty(orderList)) {
@@ -237,10 +237,11 @@ public class OrderController {
 				buyProductVo.setPrice(e.getAmount());
 				buyProductVo.setProductId(product.getId());
 				buyProductVo.setSellerId(e.getSellerId());// 设置购买的卖家主键
+				buyProductVo.setState(product.getState());
 				if (!CollectionUtils.isEmpty(product.getImages())) {
 					buyProductVo.setPic(product.getImages().iterator().next().getPath());
 				}
-				buyProductVo.setTime(e.getCreateTime());// TODO时间有问题
+				buyProductVo.setTime(e.getUpdateTime());
 				buyProductVo.setOrderId(e.getId());
 				resultList.add(buyProductVo);
 			});
@@ -269,6 +270,7 @@ public class OrderController {
 				sellProductVo.setProductId(product.getId());
 				sellProductVo.setBuyerId(e.getBuyerId());// 设置购买的买家主键
 				sellProductVo.setTime(product.getTmUpdated());
+				sellProductVo.setState(product.getState());
 				if (!CollectionUtils.isEmpty(product.getImages())) {
 					sellProductVo.setPic(product.getImages().iterator().next().getPath());
 				}

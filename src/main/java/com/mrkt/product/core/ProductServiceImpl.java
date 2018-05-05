@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.persistence.criteria.Predicate;
@@ -23,6 +24,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import com.mrkt.constant.ProductStatusEnum;
 import com.mrkt.constant.ResultEnum;
@@ -89,14 +91,14 @@ public class ProductServiceImpl implements ProductService {
 				throw new MrktException(ResultEnum.PRODUCT_NOT_EXIST);
 			}
 			
-			po.setName(entity.getName());
-			po.setDesc(entity.getDesc());
-			po.setPrice((entity.getPrice() != null) && (entity.getPrice() >= 0) ? entity.getPrice() : 0);
-			if (!po.getCatId().equals(entity.getCatId())) {
+			if (!StringUtils.isEmpty(entity.getName())) po.setName(entity.getName());
+			if (!StringUtils.isEmpty(entity.getDesc())) po.setDesc(entity.getDesc());
+			if (!StringUtils.isEmpty(entity.getPrice())) po.setPrice(entity.getPrice());
+			if (!StringUtils.isEmpty(entity.getCatId()) && !po.getCatId().equals(entity.getCatId())) {
 				po.setCatId(entity.getCatId());
 				po.setPtype(categoryRepository.getOne(entity.getCatId()).getName());// 更新冗余字段数据
 			}
-			po.setCount(entity.getCount());
+			if (!StringUtils.isEmpty(entity.getCount())) po.setCount(entity.getCount());
 			if (!CollectionUtils.isEmpty(entity.getImages()))
 				po.setImages(entity.getImages());
 			
@@ -192,10 +194,13 @@ public class ProductServiceImpl implements ProductService {
 	@Transactional
 	public void addLikes(Long id) throws Exception {
 		Long result = redisTemplate.boundSetOps("pro_like_" + id).add(ThisUser.get().getUid());
+		
 		if (result == null || result == 0) {
 			logger.error("【点赞商品】 用户重复点赞，uid={}, productId={}", ThisUser.get().getUid(), id);
 			throw new MrktException(ResultEnum.USER_ADDLIKE_ERROR);
 		}
+		
+		redisTemplate.boundSetOps("pro_like_" + id).expire(100, TimeUnit.DAYS);
 		Product entity = productRepository.findOne(id);
 		if (entity == null) {
 			logger.error("【点赞商品】 找不到商品，productId={}", id);
@@ -240,6 +245,10 @@ public class ProductServiceImpl implements ProductService {
 			logger.error("【收藏商品】 用户重复收藏该商品，uid={}, productId={}", ThisUser.get().getUid(), id);
 			throw new MrktException(ResultEnum.USER_ADDCOLL_ERROR);
 		}
+		
+		redisTemplate.boundSetOps("pro_coll_" + id).expire(100, TimeUnit.DAYS);
+		redisTemplate.boundSetOps("user_coll_" + ThisUser.get().getUid()).expire(100, TimeUnit.DAYS);
+		
 		Product entity = productRepository.findOne(id);
 		if (entity == null) {
 			logger.error("【收藏商品】 找不到商品，productId={}", id);
@@ -307,6 +316,9 @@ public class ProductServiceImpl implements ProductService {
 			List<Predicate> predicates = new ArrayList<>();
 			predicates.add(builder.equal(root.get("state").as(Integer.class), ProductStatusEnum.ON_SALE.getCode()));
 			predicates.add(builder.equal(root.get("mrktUser").as(UserBase.class), ThisUser.get()));
+			// 排序
+			query.orderBy(builder.desc(root.get("tmCreated").as(Date.class)));
+			
 			return builder.and(predicates.toArray(new Predicate[predicates.size()]));
 		};
 		List<Product> products = productRepository.findAll(sp);
@@ -326,6 +338,8 @@ public class ProductServiceImpl implements ProductService {
 	public List<Product> getCollection() throws Exception {
 		Set<Integer> idsInt = redisTemplate.boundSetOps("user_coll_" + ThisUser.get().getUid()).members();
 		if (!CollectionUtils.isEmpty(idsInt)) {
+			redisTemplate.boundSetOps("user_coll_" + ThisUser.get().getUid()).expire(100, TimeUnit.DAYS);
+			
 			Set<Long> ids = idsInt.stream()
 					.map(e -> new Long(e))
 					.collect(Collectors.toSet());

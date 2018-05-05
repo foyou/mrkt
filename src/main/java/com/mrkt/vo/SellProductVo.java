@@ -21,6 +21,9 @@ public class SellProductVo extends BaseProductVo {
 	
 	/** 订单id */
 	private String orderId;
+	
+	/** 订单状态 */
+	private Integer state;
 
 	public Date getTime() {
 		return time;
@@ -44,6 +47,14 @@ public class SellProductVo extends BaseProductVo {
 
 	public void setOrderId(String orderId) {
 		this.orderId = orderId;
+	}
+
+	public Integer getState() {
+		return state;
+	}
+
+	public void setState(Integer state) {
+		this.state = state;
 	}
 
 }

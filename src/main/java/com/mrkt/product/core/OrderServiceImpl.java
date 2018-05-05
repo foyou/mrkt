@@ -222,6 +222,8 @@ public class OrderServiceImpl implements OrderService {
 			List<Predicate> predicates = new ArrayList<>();
 			predicates.add(builder.between(root.get("state").as(Integer.class), stateBegin, stateEnd));
 			predicates.add(builder.equal(root.get("buyerId").as(Long.class), ThisUser.get().getUid()));
+			// 排序
+			query.orderBy(builder.desc(root.get("updateTime").as(Date.class)));
 			return builder.and(predicates.toArray(new Predicate[predicates.size()]));
 		};
 		return orderRepository.findAll(sp);
@@ -231,9 +233,13 @@ public class OrderServiceImpl implements OrderService {
 	public List<Order> findByStateAsSeller() throws Exception {
 		Specification<Order> sp = (root, query, builder) -> {
 			List<Predicate> predicates = new ArrayList<>();
-			predicates.add(builder.between(root.join("product").get("state").as(Integer.class), 
-					ProductStatusEnum.BE_ORDERED.getCode(), ProductStatusEnum.BE_SOLD.getCode()));
+			predicates.add(builder.between(root.get("state").as(Integer.class), 
+					OrderStatusEnum.BE_COMMENTING.getCode(), OrderStatusEnum.BE_COMPLETE.getCode()));
+//			predicates.add(builder.between(root.join("product").get("state").as(Integer.class), 
+//					ProductStatusEnum.BE_ORDERED.getCode(), ProductStatusEnum.BE_SOLD.getCode()));
 			predicates.add(builder.equal(root.get("sellerId").as(Long.class), ThisUser.get().getUid()));
+			// 排序
+			query.orderBy(builder.desc(root.get("updateTime").as(Date.class)));
 			return builder.and(predicates.toArray(new Predicate[predicates.size()]));
 		};
 		return orderRepository.findAll(sp);
@@ -268,6 +274,8 @@ public class OrderServiceImpl implements OrderService {
 			List<Predicate> predicates = new ArrayList<>();
 			predicates.add(builder.equal(root.get("state").as(Integer.class), state));
 			predicates.add(builder.equal(root.get(buyerSeller).as(Long.class), uid));
+			// 排序
+			query.orderBy(builder.desc(root.get("updateTime").as(Date.class)));
 			return builder.and(predicates.toArray(new Predicate[predicates.size()]));
 		};
 		return orderRepository.findAll(sp);

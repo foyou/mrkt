@@ -77,7 +77,7 @@ public class UserServiceImpl {
 					.map(e -> new UserCommentVo(e.getSellerScore(), e.getSellerComment()))
 					.collect(Collectors.toList());
 			userVo.setCommentVoList(commentVoList);
-			
+			// 算平均分
 			Double avgScore = commentVoList.stream()
 					.collect(Collectors.averagingInt(UserCommentVo::getScore));
 			userVo.setAvgScore(avgScore);
@@ -104,7 +104,7 @@ public class UserServiceImpl {
 					.map(e -> new UserCommentVo(e.getSellerScore(), e.getSellerComment()))
 					.collect(Collectors.toList());
 			userVo.setCommentVoList(commentVoList);
-			
+			// 算平均分
 			Double avgScore = commentVoList.stream()
 					.collect(Collectors.averagingInt(UserCommentVo::getScore));
 			userVo.setAvgScore(avgScore);

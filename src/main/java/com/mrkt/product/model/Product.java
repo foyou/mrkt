@@ -20,6 +20,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.DynamicUpdate;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mrkt.constant.ProductStatusEnum;
 import com.mrkt.usr.model.UserBase;
 
@@ -28,6 +31,7 @@ import com.mrkt.usr.model.UserBase;
  * @author hdonghone
  */
 @Entity
+@DynamicUpdate
 @Table(name="mrkt_product")
 public class Product implements Serializable{
 
@@ -89,6 +93,7 @@ public class Product implements Serializable{
 	
 	@OneToMany(cascade=CascadeType.ALL, fetch = FetchType.EAGER)
 	@JoinColumn(name="product_id")
+	@JsonIgnore
 	private Set<Comment> comments = new HashSet<>(); // 一对多关联评论
 	
 	/**

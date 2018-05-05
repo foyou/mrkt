@@ -18,6 +18,7 @@ import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mrkt.usr.model.UserBase;
 
 /**
@@ -40,16 +41,23 @@ public class Comment implements Serializable {
  
 	@OneToOne(cascade = CascadeType.DETACH, fetch = FetchType.LAZY)
 	@JoinColumn(name="uid")
+	@JsonIgnore
 	private UserBase UserBase;
 	
 	@Column(nullable = false) // 映射为字段，值不能为空
 	@org.hibernate.annotations.CreationTimestamp  // 由数据库自动创建时间
 	private Timestamp createTime;
 	
+	/** 昵称 */
 	@Transient
-	/**
-	 * 冗余字段，标志评论是否属于当前用户
-	 */
+	private String nName;
+	
+	/** 微信头像 */
+	@Transient
+	private String avatar;
+	
+	@Transient
+	/** 冗余字段，标志评论是否属于当前用户 */
 	private Boolean belongCurrUser = false;
  
 	protected Comment() {
@@ -63,27 +71,38 @@ public class Comment implements Serializable {
 	public Long getId() {
 		return id;
 	}
-
 	public void setId(Long id) {
 		this.id = id;
 	}
-
 	public String getContent() {
 		return content;
 	}
-
 	public void setContent(String content) {
 		this.content = content;
 	}
-	public UserBase getUser() {
+	public UserBase getUserBase() {
 		return UserBase;
 	}
-	public void setUser(UserBase UserBase) {
-		this.UserBase = UserBase;
+	public void setUserBase(UserBase userBase) {
+		UserBase = userBase;
 	}
- 
 	public Timestamp getCreateTime() {
 		return createTime;
+	}
+	public void setCreateTime(Timestamp createTime) {
+		this.createTime = createTime;
+	}
+	public String getnName() {
+		return nName;
+	}
+	public void setnName(String nName) {
+		this.nName = nName;
+	}
+	public String getAvatar() {
+		return avatar;
+	}
+	public void setAvatar(String avatar) {
+		this.avatar = avatar;
 	}
 	public Boolean getBelongCurrUser() {
 		return belongCurrUser;
@@ -91,11 +110,12 @@ public class Comment implements Serializable {
 	public void setBelongCurrUser(Boolean belongCurrUser) {
 		this.belongCurrUser = belongCurrUser;
 	}
+	
 	@Override
 	public String toString() {
 		return "Comment [id=" + id + ", content=" + content + ", UserBase=" + UserBase + ", createTime=" + createTime
-				+ ", belongCurrUser=" + belongCurrUser + "]";
+				+ ", nName=" + nName + ", avatar=" + avatar + ", belongCurrUser=" + belongCurrUser + "]";
 	}
-	
+
 	
 }

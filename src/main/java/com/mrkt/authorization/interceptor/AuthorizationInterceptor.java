@@ -20,6 +20,7 @@ import com.mrkt.authorization.model.Token;
 import com.mrkt.sys.config.Configurator;
 import com.mrkt.usr.ThisUser;
 import com.mrkt.usr.core.UserServiceImpl;
+import com.mrkt.utils.IpUtils;
 
 @Component
 public class AuthorizationInterceptor extends HandlerInterceptorAdapter{
@@ -86,6 +87,7 @@ public class AuthorizationInterceptor extends HandlerInterceptorAdapter{
 		if (method.getAnnotation(Authorization.class) != null){
 				if (srectStr == null ) {
 					logger.info("Not Auth");
+					logger.warn("请求的客户端ip地址：【" + IpUtils.getIpAddr(request) + "】");
 		        		response.sendRedirect("https://open.weixin.qq.com/connect/oauth2/authorize?appid="
 		        				+this.wxAppId+
 		        				"&redirect_uri="

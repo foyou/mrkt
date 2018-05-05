@@ -28,6 +28,7 @@ import com.mrkt.product.model.Product;
 import com.mrkt.usr.ThisUser;
 import com.mrkt.utils.UploadUtil;
 import com.mrkt.vo.CollProductVo;
+import com.mrkt.vo.MineProductVo;
 import com.mrkt.vo.ReturnModel;
 
 /**
@@ -126,7 +127,15 @@ public class ProductController {
 	 */
 	@Authorization
 	@RequestMapping(value="/products/{id}", method=RequestMethod.PUT)
-	public ReturnModel updateProduct(@RequestBody Product entity, HttpServletRequest request) throws Exception {
+	public ReturnModel updateProduct(
+			@PathVariable("id") Long id,
+			@RequestBody Product entity, 
+			HttpServletRequest request) throws Exception {
+		// 输出信息
+		logger.info("id: {}", id);
+		logger.info("product: {}", entity.toString());
+		
+		
 		// 处理图片
 		Set<Image> images = entity.getImages();
 		if (images != null && images.size() > 0)
@@ -137,6 +146,7 @@ public class ProductController {
 					logger.error("【修改商品】 图片上传失败，base64={}" + image.getPath());
 				image.setPath(path);
 			}
+		entity.setId(id);
 		productService.saveOrUpdate(entity);
 		return ReturnModel.SUCCESS();
 	}
@@ -205,8 +215,25 @@ public class ProductController {
 	@RequestMapping(value="/products/mine", method=RequestMethod.GET)
 	public ReturnModel getMine() throws Exception {
 		List<Product> productList = productService.getMine();
-
-		return ReturnModel.SUCCESS(productList);
+		List<MineProductVo> resultList = new ArrayList<>();
+		
+		if (!CollectionUtils.isEmpty(productList)) {
+			productList.forEach(e -> {
+				MineProductVo mineProductVo = new MineProductVo();
+				mineProductVo.setName(e.getName());
+				mineProductVo.setPrice(e.getPrice());
+				mineProductVo.setProductId(e.getId());
+				mineProductVo.setViews(e.getViews());
+				mineProductVo.setTime(e.getTmCreated());
+				if (!CollectionUtils.isEmpty(e.getImages())) {
+					mineProductVo.setPic(e.getImages().iterator().next().getPath());
+				}
+				
+				resultList.add(mineProductVo);
+			});
+		}
+		
+		return ReturnModel.SUCCESS(resultList);
 	}
 	
 	/**

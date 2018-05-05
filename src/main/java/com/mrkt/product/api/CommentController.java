@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,6 +18,7 @@ import com.mrkt.product.model.Comment;
 import com.mrkt.product.model.Product;
 import com.mrkt.usr.ThisUser;
 import com.mrkt.usr.model.UserBase;
+import com.mrkt.vo.ProductCommentVo;
 import com.mrkt.vo.ReturnModel;
 
 /**
@@ -39,6 +41,7 @@ public class CommentController {
 	 * @param model
 	 * @return
 	 */
+	@Authorization
 	@RequestMapping(method=RequestMethod.GET)
 	public ReturnModel listComments(
 			@RequestParam(value="productId",required=true) Long productId) throws Exception {
@@ -50,7 +53,10 @@ public class CommentController {
 		if (user != null)
 			for (Comment comment : comments) {
 				comment.setBelongCurrUser(
-						user.getUid().equals(comment.getUser().getUid()));
+						user.getUid().equals(comment.getUserBase().getUid()));
+				comment.setAvatar(comment.getUserBase().getAvatar());
+				comment.setnName(comment.getUserBase().getnName());
+				comment.setUserBase(null);
 			}
 		
 		return ReturnModel.SUCCESS(comments);
@@ -58,16 +64,15 @@ public class CommentController {
 	
 	/**
 	 * 发表评论
-	 * @param blogId
+	 * @param productId
 	 * @param commentContent
 	 * @return
 	 */
 	@Authorization
 	@RequestMapping(method=RequestMethod.POST)
-	public ReturnModel createComment(
-			@RequestParam(value="productId") Long productId, 
-			@RequestParam(value="commentContent") String commentContent) throws Exception {
-		productService.addComment(productId, commentContent);
+	public ReturnModel createComment(@RequestBody ProductCommentVo productCommentVo) 
+			throws Exception {
+		productService.addComment(productCommentVo.getProductId(), productCommentVo.getCommentContent());
 		return ReturnModel.SUCCESS();
 	}
 	
@@ -81,7 +86,7 @@ public class CommentController {
 			@PathVariable("id") Long id, 
 			@RequestParam(value="productId") Long productId) throws Exception {
 		
-		UserBase commentUser = commentService.getCommentById(id).getUser();
+		UserBase commentUser = commentService.getCommentById(id).getUserBase();
 		// 判断操作用户是否是评论的所有者
 		if (!commentUser.getUid().equals(ThisUser.get().getUid()))
 			return new ReturnModel(StatusCodeConf.ForbiddenCode, "该评论不属于当前用户", null);
