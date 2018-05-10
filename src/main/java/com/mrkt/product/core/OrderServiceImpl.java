@@ -89,7 +89,7 @@ public class OrderServiceImpl implements OrderService {
 			// 修改商品状态
 			Product product = order.getProduct();
 			product.setState(ProductStatusEnum.BE_ORDERED.getCode());
-			productRepository.saveAndFlush(product);
+			productRepository.save(product);
 			// 需要拒绝其它请求
 			List<Order> orders = orderRepository.findByProductId(product.getId());
 			if (!CollectionUtils.isEmpty(orders)) {

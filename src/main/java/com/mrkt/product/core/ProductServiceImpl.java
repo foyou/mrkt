@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.persistence.criteria.Predicate;
@@ -200,7 +199,7 @@ public class ProductServiceImpl implements ProductService {
 			throw new MrktException(ResultEnum.USER_ADDLIKE_ERROR);
 		}
 		
-		redisTemplate.boundSetOps("pro_like_" + id).expire(100, TimeUnit.DAYS);
+//		redisTemplate.boundSetOps("pro_like_" + id).expire(100, TimeUnit.DAYS);
 		Product entity = productRepository.findOne(id);
 		if (entity == null) {
 			logger.error("【点赞商品】 找不到商品，productId={}", id);
@@ -246,8 +245,8 @@ public class ProductServiceImpl implements ProductService {
 			throw new MrktException(ResultEnum.USER_ADDCOLL_ERROR);
 		}
 		
-		redisTemplate.boundSetOps("pro_coll_" + id).expire(100, TimeUnit.DAYS);
-		redisTemplate.boundSetOps("user_coll_" + ThisUser.get().getUid()).expire(100, TimeUnit.DAYS);
+//		redisTemplate.boundSetOps("pro_coll_" + id).expire(100, TimeUnit.DAYS);
+//		redisTemplate.boundSetOps("user_coll_" + ThisUser.get().getUid()).expire(100, TimeUnit.DAYS);
 		
 		Product entity = productRepository.findOne(id);
 		if (entity == null) {
@@ -338,7 +337,7 @@ public class ProductServiceImpl implements ProductService {
 	public List<Product> getCollection() throws Exception {
 		Set<Integer> idsInt = redisTemplate.boundSetOps("user_coll_" + ThisUser.get().getUid()).members();
 		if (!CollectionUtils.isEmpty(idsInt)) {
-			redisTemplate.boundSetOps("user_coll_" + ThisUser.get().getUid()).expire(100, TimeUnit.DAYS);
+//			redisTemplate.boundSetOps("user_coll_" + ThisUser.get().getUid()).expire(100, TimeUnit.DAYS);
 			
 			Set<Long> ids = idsInt.stream()
 					.map(e -> new Long(e))

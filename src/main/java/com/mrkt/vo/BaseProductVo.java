@@ -24,6 +24,9 @@ public class BaseProductVo implements Serializable {
 	
 	/** 价格  */
 	protected Double price;
+	
+	/** 状态 */
+	protected Integer state;
 
 	public String getName() {
 		return name;
@@ -57,6 +60,12 @@ public class BaseProductVo implements Serializable {
 		this.price = price;
 	}
 
+	public Integer getState() {
+		return state;
+	}
 
+	public void setState(Integer state) {
+		this.state = state;
+	}
 	
 }

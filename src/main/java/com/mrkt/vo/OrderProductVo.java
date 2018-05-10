@@ -16,9 +16,6 @@ public class OrderProductVo extends BaseProductVo {
 	/** 预定时间 */
 	private Date time;
 	
-	/** 商品状态 */
-	private Integer state;
-	
 	/** 卖家id */
 	private Long sellerId;
 	
@@ -34,14 +31,6 @@ public class OrderProductVo extends BaseProductVo {
 
 	public void setTime(Date time) {
 		this.time = time;
-	}
-
-	public Integer getState() {
-		return state;
-	}
-
-	public void setState(Integer state) {
-		this.state = state;
 	}
 
 	public Long getSellerId() {

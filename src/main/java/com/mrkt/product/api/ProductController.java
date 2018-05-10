@@ -225,6 +225,7 @@ public class ProductController {
 				mineProductVo.setProductId(e.getId());
 				mineProductVo.setViews(e.getViews());
 				mineProductVo.setTime(e.getTmCreated());
+				mineProductVo.setState(e.getState());
 				if (!CollectionUtils.isEmpty(e.getImages())) {
 					mineProductVo.setPic(e.getImages().iterator().next().getPath());
 				}
@@ -254,6 +255,7 @@ public class ProductController {
 				collProductVo.setPrice(e.getPrice());
 				collProductVo.setProductId(e.getId());
 				collProductVo.setSellerId(e.getMrktUser().getUid());
+				collProductVo.setState(e.getState());
 				if (!CollectionUtils.isEmpty(e.getImages())) {
 					collProductVo.setPic(e.getImages().iterator().next().getPath());
 				}
