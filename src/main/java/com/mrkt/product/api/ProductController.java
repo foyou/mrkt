@@ -6,12 +6,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.persistence.criteria.Predicate;
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,8 +24,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mrkt.authorization.annotation.Authorization;
 import com.mrkt.config.CommonConfig;
+import com.mrkt.constant.OrderStatusEnum;
+import com.mrkt.constant.ProductStatusEnum;
 import com.mrkt.product.core.ProductService;
+import com.mrkt.product.dao.OrderRepository;
 import com.mrkt.product.model.Image;
+import com.mrkt.product.model.Order;
 import com.mrkt.product.model.Product;
 import com.mrkt.usr.ThisUser;
 import com.mrkt.utils.UploadUtil;
@@ -45,6 +51,8 @@ public class ProductController {
 	private ProductService productService;
 	@Autowired
 	private CommonConfig commonConfig;
+	@Autowired
+	private OrderRepository orderRepository;
 	
 	private final Logger logger = LoggerFactory.getLogger(ProductController.class);
 	
@@ -229,7 +237,21 @@ public class ProductController {
 				if (!CollectionUtils.isEmpty(e.getImages())) {
 					mineProductVo.setPic(e.getImages().iterator().next().getPath());
 				}
-				
+				if (e.getState().equals(ProductStatusEnum.BE_ORDERED.getCode())) {
+					// 处理已经被预定的商品
+					Specification<Order> sp = (root, query, builder) -> {
+						List<Predicate> predicates = new ArrayList<>();
+						predicates.add(builder.between(root.get("state").as(Integer.class), 
+								OrderStatusEnum.BE_WAITING_PYAMENT.getCode(), OrderStatusEnum.BE_WAITING_RECEIVING.getCode()));
+						predicates.add(builder.equal(root.join("product").get("id").as(Integer.class), e.getId()));
+						return builder.and(predicates.toArray(new Predicate[predicates.size()]));
+					};
+					List<Order> orderList = orderRepository.findAll(sp);
+					if (CollectionUtils.isEmpty(orderList)) { 
+						logger.error("【我发布的】 查询不到被预定商品对应的订单！，productId = {}", e.getId());
+					}
+					mineProductVo.setOrderId(orderList.get(0).getId());
+				}
 				resultList.add(mineProductVo);
 			});
 		}

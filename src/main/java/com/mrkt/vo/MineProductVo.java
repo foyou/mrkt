@@ -18,6 +18,9 @@ public class MineProductVo extends BaseProductVo {
 	
 	/** 发布时间 */
 	private Date time;
+	
+	/** 订单id */
+	private String orderId;
 
 	public Integer getViews() {
 		return views;
@@ -34,6 +37,13 @@ public class MineProductVo extends BaseProductVo {
 	public void setTime(Date time) {
 		this.time = time;
 	}
-	
+
+	public String getOrderId() {
+		return orderId;
+	}
+
+	public void setOrderId(String orderId) {
+		this.orderId = orderId;
+	}
 	
 }

@@ -69,7 +69,11 @@ public class Image implements Serializable {
 	}
 	@Override
 	public String toString() {
-		return "Image [id=" + id + ", product=" + product + ", path=" + path + "]";
+		String tempPath = path;
+		if (path != null && path.length() > 100) {
+			tempPath = path.substring(0, 100);
+		}
+		return "Image [id=" + id + ", product=" + product + ", path=" + tempPath + "]";
 	}
 	
 	

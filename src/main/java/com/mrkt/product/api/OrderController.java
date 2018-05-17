@@ -27,7 +27,8 @@ import com.mrkt.vo.UserCommentVo;
 
 /**
  * 商品订单 控制器.
- * 
+ * @author hdonghong
+ * @date 2018/03/15
  */
 @RestController
 @RequestMapping("/order")
@@ -237,7 +238,7 @@ public class OrderController {
 				buyProductVo.setPrice(e.getAmount());
 				buyProductVo.setProductId(product.getId());
 				buyProductVo.setSellerId(e.getSellerId());// 设置购买的卖家主键
-				buyProductVo.setState(product.getState());
+				buyProductVo.setState(e.getState());
 				if (!CollectionUtils.isEmpty(product.getImages())) {
 					buyProductVo.setPic(product.getImages().iterator().next().getPath());
 				}

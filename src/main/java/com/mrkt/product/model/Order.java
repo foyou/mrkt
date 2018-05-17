@@ -10,10 +10,12 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mrkt.constant.OrderStatusEnum;
 
 /**
@@ -41,6 +43,7 @@ public class Order implements Serializable {
 	 */
 	@OneToOne
 	@JoinColumn(name="product_id")
+	@JsonIgnore
 	private Product product;
 	
 	@Column(name = "buyer_id")
@@ -94,6 +97,9 @@ public class Order implements Serializable {
 	
 	@Column(name = "end_time")
 	private Date endTime;                   // 订单完成时间
+	
+	@Transient
+	private Long pId;
 
 	public Order() {
 		super();
@@ -259,5 +265,13 @@ public class Order implements Serializable {
 
 	public void setUpdateTime(Date updateTime) {
 		this.updateTime = updateTime;
+	}
+
+	public Long getPId() {
+		return pId;
+	}
+
+	public void setPId(Long pId) {
+		this.pId = pId;
 	}
 }

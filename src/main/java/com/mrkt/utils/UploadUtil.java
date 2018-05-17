@@ -31,7 +31,6 @@ public class UploadUtil {
 				return null;
 			}
 		}
-//		String dataPrix = base64Arr[0];
 		String data = base64Arr[1];
 		byte[] b = Base64Utils.decodeFromString(data);
 		
@@ -59,4 +58,5 @@ public class UploadUtil {
 		return commonConfig.getImageUrl() + imageName;
 		
 	}
+	
 }

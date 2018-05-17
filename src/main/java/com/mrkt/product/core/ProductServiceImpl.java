@@ -43,6 +43,8 @@ public class ProductServiceImpl implements ProductService {
 	
 	/** 日志 */
 	private final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
+	/** 页面展示数据量 */
+	private static final int pageSize = 10;
 
 	@Autowired
 	private ProductRepository productRepository;
@@ -113,6 +115,7 @@ public class ProductServiceImpl implements ProductService {
 		productRepository.save(entity);
 	}
 	
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public Page<Product> findPage(int currPage, Long catId, String orderWay, String keywords) throws Exception {
@@ -121,7 +124,7 @@ public class ProductServiceImpl implements ProductService {
 			throw new MrktException(ResultEnum.PARAM_ERROR);
 		}
 		
-		final int pageSize = 10;
+//		final int pageSize = 10;
 		
 		Specification<Product> sp = (root, query, builder) -> {
 				/*
@@ -144,7 +147,9 @@ public class ProductServiceImpl implements ProductService {
 		if (orderWay == null || orderWay.trim().length() <= 0) orderWay = "tmCreated";// 默认为最新排序
 		Pageable pageable = new PageRequest(currPage, pageSize, new Sort(new Order(Direction.DESC, orderWay)));
 		Page<Product> page = productRepository.findAll(sp, pageable);
+		// TODO 效率低
 		// 处理当前用户对于商品的点赞情况和收藏情况
+		/*
 		UserBase currUser = null;
 		if ((currUser = ThisUser.get()) != null)
 			for (Product product : page) {
@@ -153,7 +158,7 @@ public class ProductServiceImpl implements ProductService {
 				product.setIsColl(redisTemplate.boundSetOps("pro_coll_" + product.getId()).
 							isMember(currUser.getUid()));
 			}
-		
+		*/
 		return page;
 	}
 
@@ -245,9 +250,6 @@ public class ProductServiceImpl implements ProductService {
 			throw new MrktException(ResultEnum.USER_ADDCOLL_ERROR);
 		}
 		
-//		redisTemplate.boundSetOps("pro_coll_" + id).expire(100, TimeUnit.DAYS);
-//		redisTemplate.boundSetOps("user_coll_" + ThisUser.get().getUid()).expire(100, TimeUnit.DAYS);
-		
 		Product entity = productRepository.findOne(id);
 		if (entity == null) {
 			logger.error("【收藏商品】 找不到商品，productId={}", id);
@@ -313,7 +315,8 @@ public class ProductServiceImpl implements ProductService {
 	public List<Product> getMine() throws Exception {
 		Specification<Product> sp = (root, query, builder) -> {
 			List<Predicate> predicates = new ArrayList<>();
-			predicates.add(builder.equal(root.get("state").as(Integer.class), ProductStatusEnum.ON_SALE.getCode()));
+			predicates.add(builder.between(root.get("state").as(Integer.class), 
+					ProductStatusEnum.ON_SALE.getCode(), ProductStatusEnum.BE_ORDERED.getCode()));
 			predicates.add(builder.equal(root.get("mrktUser").as(UserBase.class), ThisUser.get()));
 			// 排序
 			query.orderBy(builder.desc(root.get("tmCreated").as(Date.class)));
@@ -337,7 +340,6 @@ public class ProductServiceImpl implements ProductService {
 	public List<Product> getCollection() throws Exception {
 		Set<Integer> idsInt = redisTemplate.boundSetOps("user_coll_" + ThisUser.get().getUid()).members();
 		if (!CollectionUtils.isEmpty(idsInt)) {
-//			redisTemplate.boundSetOps("user_coll_" + ThisUser.get().getUid()).expire(100, TimeUnit.DAYS);
 			
 			Set<Long> ids = idsInt.stream()
 					.map(e -> new Long(e))

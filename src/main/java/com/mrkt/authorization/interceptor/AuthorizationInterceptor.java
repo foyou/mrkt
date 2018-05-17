@@ -17,6 +17,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import com.mrkt.authorization.annotation.Authorization;
 import com.mrkt.authorization.core.TokenManager;
 import com.mrkt.authorization.model.Token;
+import com.mrkt.config.CommonConfig;
 import com.mrkt.sys.config.Configurator;
 import com.mrkt.usr.ThisUser;
 import com.mrkt.usr.core.UserServiceImpl;
@@ -30,6 +31,9 @@ public class AuthorizationInterceptor extends HandlerInterceptorAdapter{
 	@Autowired
 	@Qualifier("redisTokenManager")
 	private TokenManager tokenManager;
+	
+	@Autowired
+	private CommonConfig commonConfig;
 
 	@Autowired
 	private UserServiceImpl userServiceImpl;
@@ -47,7 +51,7 @@ public class AuthorizationInterceptor extends HandlerInterceptorAdapter{
 	private final static String X_Auth_Type_Token = "com.mrkt.request.auth_type.token";
 	
 	private final static String WX_APP_ID = "wx.app.id";
-	//在线上环境时Redirect_uri应该为前端应用地址
+	/** 在线上环境时Redirect_uri应该为前端应用地址 */
 	private final static String WX_APP_REDIRECT_URI = "wx.app.redirect_uri";
 	
 	
@@ -89,10 +93,12 @@ public class AuthorizationInterceptor extends HandlerInterceptorAdapter{
 					logger.info("Not Auth");
 					logger.warn("请求的客户端ip地址：【" + IpUtils.getIpAddr(request) + "】");
 		        		response.sendRedirect("https://open.weixin.qq.com/connect/oauth2/authorize?appid="
-		        				+this.wxAppId+
-		        				"&redirect_uri="
-		        				+URLEncoder.encode(this.wxRedirectUri)+
-		        				"&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect");
+		        				+ this.wxAppId
+		        				+ "&redirect_uri="
+		        				+ URLEncoder.encode(this.wxRedirectUri)
+		        				+ "&response_type=code&scope=snsapi_userinfo&state=" 
+		        				+ commonConfig.getProjectUrl()
+					        	+ "#wechat_redirect");
 		        	return false;
 				}
 		}

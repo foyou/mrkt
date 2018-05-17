@@ -38,6 +38,11 @@ spring:
       max-idle: 8
       min-idle: 3
       timeout: 0
+## thymeleaf
+  thymeleaf:
+    encoding: UTF-8
+    cache: true
+    mode: HTML5
 
 endpoints: 
   sensitive: false

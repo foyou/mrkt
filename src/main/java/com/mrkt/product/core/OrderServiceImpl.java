@@ -213,7 +213,11 @@ public class OrderServiceImpl implements OrderService {
 
 	@Override
 	public Order findOne(String id) throws Exception {
-		return orderRepository.findOne(id);
+		Order result = orderRepository.findOne(id);
+		if (result != null) {
+			result.setPId(result.getProduct().getId());
+		}
+		return result;
 	}
 
 	@Override

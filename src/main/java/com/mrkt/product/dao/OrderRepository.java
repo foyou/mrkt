@@ -46,4 +46,6 @@ public interface OrderRepository extends JpaRepository<Order, String>, JpaSpecif
 	 */
 	List<Order> findByProductId(Long productId);
 	
+	
+	
 }

@@ -38,9 +38,9 @@ public class RedisTokenManager implements TokenManager{
 	public Token create(UserBase userBase) {
 		Token token = null;
 		if( (token=TokenIssues.tokenGenerator(userBase)) != null ){
-//			redisTemplate.boundValueOps(token.getSrect()).set(token, tmTokenExpire, TimeUnit.MINUTES);
+			redisTemplate.boundValueOps(token.getSrect()).set(token, tmTokenExpire, TimeUnit.MINUTES);
 //			TODO
-			redisTemplate.boundValueOps(token.getSrect()).set(token, tmTokenExpire, TimeUnit.DAYS);
+//			redisTemplate.boundValueOps(token.getSrect()).set(token, tmTokenExpire, TimeUnit.DAYS);
 		}
 		return token;
 	}
