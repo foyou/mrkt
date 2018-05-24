@@ -17,3 +17,9 @@ Cache: Redis 3.2.8
 [微信pc端开发者工具](https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1455784140)
 
 [Linux版](https://github.com/yuan1994/wechat_web_devtools)
+
+### Test
+
+测试版本已上线，微信扫码关注测试公众号（下图）后即可访问 [scauymt.com](scauymt.com)：
+
+![测试公众号](http://p7ijvqdph.bkt.clouddn.com/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20180524134929.png)
